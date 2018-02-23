@@ -1,9 +1,10 @@
-from io import FileIO
+import hashlib
+from io import FileIO, BytesIO
 
 from util.common import *
 from util.io_helper import IOHelper
 
-HEADER = 'NeoplePack_Bill'
+FILE_MAGIC = 'NeoplePack_Bill'
 C_DECORD_FLAG = bytes('puchikon@neople dungeon and fighter %s\x00' % ('DNF' * 73), encoding='ascii')
 
 
@@ -12,11 +13,13 @@ class NPK:
         self._io = io  # type: FileIO
         self._files = None  # type: dict
 
-    def open(self):
+        self._open()
+
+    def _open(self):
         io = self._io
 
-        header = IOHelper.read_ascii_string(io, 16)
-        if header != HEADER:
+        magic = IOHelper.read_ascii_string(io, 16)
+        if magic != FILE_MAGIC:
             raise Exception('Not NPK File.')
 
         [count] = IOHelper.read_struct(io, 'i')
@@ -25,6 +28,7 @@ class NPK:
         for i in range(count):
             offset, size = IOHelper.read_struct(io, '<2i')
             name = NPK._decrypt_name(io.read(256)).decode('ascii')
+            name = name[:name.find('\x00')]
             files[name] = {
                 'offset': offset,
                 'size': size,
@@ -33,26 +37,28 @@ class NPK:
 
         self._files = files
 
-    def load(self, name):
+    def load_file(self, name):
         file = self._files[name]
 
-        if file['data'] is not None:
-            return False
+        if file['data'] is None:
+            file['data'] = IOHelper.read_range(self._io, file['offset'], file['size'])
 
-        file['data'] = IOHelper.read_range(self._io, file['offset'], file['data'])
         return file['data']
 
-    def _load_all(self):
+    def list(self):
+        return list(self._files.keys())
+
+    def _load_file_all(self):
         files = self._files
 
         for name in files:
-            self.load(name)
+            self.load_file(name)
 
         return files
 
-    def save(self, io: FileIO = None):
-        # load file data.
-        files = self._load_all()
+    def save(self, io=None):
+        # load_file file data.
+        files = self._load_file_all()
 
         if io is None:
             io = self._io
@@ -61,24 +67,33 @@ class NPK:
         io.seek(0)
         io.truncate()
 
-        IOHelper.write_ascii_string(io, HEADER)
-        count = len(files)
-        IOHelper.write_struct(io, 'i', count)
+        # build head in memory.
+        with BytesIO() as io_head:
+            IOHelper.write_ascii_string(io_head, FILE_MAGIC)
+            count = len(files)
+            IOHelper.write_struct(io_head, 'i', count)
 
-        # count file offset.
-        offset = 20 + count * 264
+            # count file offset.
+            # magic(16) + count(4) + info(264 * n) + hash(32)
+            offset = 52 + count * 264
 
-        for i, k in enumerate(files):
-            file = files[k]
+            for i, k in enumerate(files):
+                file = files[k]
 
-            file['offset'] = offset
-            file['size'] = len(file['data'])
+                file['offset'] = offset
+                file['size'] = len(file['data'])
 
-            IOHelper.write_struct(io, '<2i', file['offset'], file['size'])
-            name = NPK._decrypt_name(k.encode(encoding='ascii'))
-            io.write(name)
+                IOHelper.write_struct(io_head, '<2i', file['offset'], file['size'])
+                name = NPK._decrypt_name(k.encode(encoding='ascii'))
+                io_head.write(name)
 
-            offset += file['size']
+                offset += file['size']
+
+            head_data = IOHelper.read_range(io_head)
+
+        io.write(head_data)
+        # write hash.
+        io.write(hashlib.sha256(head_data[:len(head_data) // 17 * 17]).digest())
 
         for i, k in enumerate(files):
             file = files[k]

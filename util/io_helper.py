@@ -1,5 +1,7 @@
 import struct
+
 from util.common import *
+
 
 class IOHelper:
     @staticmethod
@@ -24,7 +26,7 @@ class IOHelper:
         return result
 
     @staticmethod
-    def read_range(io, offset, size=-1):
+    def read_range(io, offset=0, size=-1):
         io.seek(offset)
         return io.read(size)
 
