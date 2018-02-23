@@ -1,5 +1,5 @@
 import struct
-
+from util.common import *
 
 class IOHelper:
     @staticmethod
@@ -7,7 +7,7 @@ class IOHelper:
         struct_size = struct.calcsize(format)
         data = io.read(struct_size)
         if zfill:
-            data = IOHelper.zfill_data(data, struct_size)
+            data = zfill_bytes(data, struct_size)
 
         result = struct.unpack(format, data)
         return result
@@ -37,10 +37,3 @@ class IOHelper:
     def write_ascii_string(io, content: str):
         data = content.encode('ascii') + b'\x00'
         return io.write(data)
-
-    @staticmethod
-    def zfill_data(data, size):
-        fill_size = size - len(data)
-        if fill_size > 0:
-            data += b'\x00' * fill_size
-        return data
