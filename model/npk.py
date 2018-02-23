@@ -17,6 +17,7 @@ class NPK:
 
     def _open(self):
         io = self._io
+        io.seek(0)
 
         magic = IOHelper.read_ascii_string(io, 16)
         if magic != FILE_MAGIC:
@@ -44,9 +45,6 @@ class NPK:
             file['data'] = IOHelper.read_range(self._io, file['offset'], file['size'])
 
         return file['data']
-
-    def list(self):
-        return list(self._files.keys())
 
     def _load_file_all(self):
         files = self._files
@@ -111,6 +109,11 @@ class NPK:
 
         result = bytes(result_list)
         return result
+
+    @property
+    def files(self):
+        if self._files is not None:
+            return list(self._files.keys())
 
     def __del__(self):
         self._io.close()
