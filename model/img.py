@@ -110,13 +110,13 @@ class IMG:
 
         dds_images = {}
         for i in range(dds_count):
-            version, fmt, index, raw_size, dds_size, w, h = IOHelper.read_struct(io, '<7i')
+            version, fmt, index, raw_size, data_size, w, h = IOHelper.read_struct(io, '<7i')
             dds_images[i] = {
-                'version': version,
+                'keep': version,
                 'format': fmt,
                 'index': index,
                 'raw_size': raw_size,
-                'dds_size': dds_size,
+                'data_size': data_size,
                 'w': w,
                 'h': h,
             }
@@ -183,7 +183,12 @@ class IMG:
         if image['data'] is not None:
             return image['data']
 
-        data = IOHelper.read_range(io, image['offset'], image['size'])
+        if self._version == FILE_VERSION_5:
+            dds_image = self._dds_images[image['dds_index']]
+            data = IOHelper.read_range(io, image['offset'], dds_image['data_size'])
+        else:
+            data = IOHelper.read_range(io, image['offset'], image['size'])
+
         if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
             data = zlib.decompress(data)
         elif image['zip_type'] != ZIP_TYPE_NONE:
@@ -217,8 +222,19 @@ class IMG:
 
         info = {}
         for k, v in image.items():
-            if k != 'data' and k != 'offset':
+            if k != 'data' and k != 'offset' and 'keep' not in k:
                 info[k] = v
+
+        dds_id = info.get('dds_index')
+        if dds_id is not None:
+            info_dds_image = {}
+
+            dds_image = self._dds_images[dds_id]
+            for k, v in dds_image.items():
+                if 'keep' not in k:
+                    info_dds_image[k] = v
+
+            info['dds_image'] = info_dds_image
 
         return info
 
