@@ -1,7 +1,7 @@
 import hashlib
 from io import FileIO, BytesIO
 
-from util.common import *
+from util import common
 from util.io_helper import IOHelper
 
 FILE_MAGIC = 'NeoplePack_Bill'
@@ -101,7 +101,7 @@ class NPK:
 
     @staticmethod
     def _decrypt_name(data):
-        data = zfill_bytes(data, 256)
+        data = common.zfill_bytes(data, 256)
         result_list = [0] * 256
 
         for i in range(256):

@@ -1,17 +1,20 @@
 import struct
 
-from util.common import *
+from util import common
 
 
 class IOHelper:
     @staticmethod
-    def read_struct(io, format, zfill=True):
-        struct_size = struct.calcsize(format)
+    def read_struct(io, fmt, zfill=True):
+        struct_size = struct.calcsize(fmt)
         data = io.read(struct_size)
-        if zfill:
-            data = zfill_bytes(data, struct_size)
 
-        result = struct.unpack(format, data)
+        if zfill:
+            data = common.zfill_bytes(data, struct_size)
+        elif len(data) == 0:
+            return None
+
+        result = struct.unpack(fmt, data)
         return result
 
     @staticmethod
@@ -31,8 +34,8 @@ class IOHelper:
         return io.read(size)
 
     @staticmethod
-    def write_struct(io, format, *values):
-        data = struct.pack(format, *values)
+    def write_struct(io, fmt, *values):
+        data = struct.pack(fmt, *values)
         return io.write(data)
 
     @staticmethod
