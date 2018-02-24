@@ -69,7 +69,6 @@ class IMG:
                 image['zip_type'] = zip_type
                 image['w'] = w
                 image['h'] = h
-                image['offset'] = None
                 image['data'] = None
                 image['size'] = size
                 image['x'] = x
@@ -110,18 +109,18 @@ class IMG:
 
         dds_images = {}
         for i in range(dds_count):
-            version, fmt, index, raw_size, data_size, w, h = IOHelper.read_struct(io, '<7i')
+            version, fmt, index, data_size, raw_size, w, h = IOHelper.read_struct(io, '<7i')
             dds_images[i] = {
                 'keep': version,
                 'format': fmt,
                 'index': index,
-                'raw_size': raw_size,
                 'data_size': data_size,
+                'raw_size': raw_size,
                 'w': w,
                 'h': h,
             }
 
-        self._dds_images = dds_images
+        return dds_images
 
     def _open(self):
         io = self._io
@@ -139,18 +138,19 @@ class IMG:
             [version, count] = IOHelper.read_struct(io, '<2i')
             self._version = version
 
-            # single color board.
             if version == FILE_VERSION_4:
-                self._color_board = self._open_color_board()
+                # single color board.
 
-            # dds image.
+                self._color_board = self._open_color_board()
             elif version == FILE_VERSION_5:
+                # dds image.
+
                 dds_count, img_size = IOHelper.read_struct(io, '<2i')
                 self._color_board = self._open_color_board()
-                self._open_dds_images(dds_count)
-
-            # multiple color board.
+                self._dds_images = self._open_dds_images(dds_count)
             elif version == FILE_VERSION_6:
+                # multiple color board.
+
                 color_boards = {}
 
                 [colors_count] = IOHelper.read_struct(io, 'i')
@@ -159,17 +159,24 @@ class IMG:
 
                 self._color_boards = color_boards
 
-            self._images = self._open_images(count)
+            images = self._open_images(count)
+            self._images = images
 
             if version != FILE_VERSION_1:
-                images = self._images
                 # behind header.
                 offset = io.tell()
-                for i in images:
-                    image = images[i]
-                    if image['format'] != IMAGE_FORMAT_LINK:
-                        image['offset'] = offset
-                        offset += image['size']
+                if self._version == FILE_VERSION_5:
+                    dds_images = self._dds_images
+                    for i in dds_images:
+                        dds_image = dds_images[i]
+                        dds_image['offset'] = offset
+                        offset += dds_image['data_size']
+                else:
+                    for i in images:
+                        image = images[i]
+                        if image['format'] != IMAGE_FORMAT_LINK:
+                            image['offset'] = offset
+                            offset += image['size']
         else:
             raise Exception('Not NPK File.')
 
@@ -178,14 +185,14 @@ class IMG:
         image = self._images[index]
 
         if image['format'] == IMAGE_FORMAT_LINK:
-            return self.build(image['link'])
+            return self.load(image['link'])
 
         if image['data'] is not None:
             return image['data']
 
         if self._version == FILE_VERSION_5:
             dds_image = self._dds_images[image['dds_index']]
-            data = IOHelper.read_range(io, image['offset'], dds_image['data_size'])
+            data = IOHelper.read_range(io, dds_image['offset'], dds_image['data_size'])
         else:
             data = IOHelper.read_range(io, image['offset'], image['size'])
 
@@ -222,7 +229,7 @@ class IMG:
 
         info = {}
         for k, v in image.items():
-            if k != 'data' and k != 'offset' and 'keep' not in k:
+            if k != 'data' and 'keep' not in k:
                 info[k] = v
 
         dds_id = info.get('dds_index')
