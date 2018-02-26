@@ -18,11 +18,13 @@ class IOHelper:
         return result
 
     @staticmethod
-    def read_ascii_string(io, max_size=-1):
+    def read_ascii_string(io, max_size=-1, ignore_zero=False):
         result = ''
+        zero_break = not ignore_zero and max_size != -1
+
         while max_size == -1 or len(result) < max_size:
             [char] = IOHelper.read_struct(io, 'B')
-            if char == 0:
+            if char == 0 and zero_break:
                 break
 
             result += chr(char)
