@@ -88,7 +88,7 @@ class IMG:
                     image['bottom'] = ry
                     image['keep_2'] = keep_2
                 elif self._version == FILE_VERSION_1:
-                    images[i]['offset'] = io.tell()
+                    image['offset'] = io.tell()
                     io.seek(size, SEEK_CUR)
 
             images[i] = image
@@ -130,7 +130,9 @@ class IMG:
         conn_image_dds = {}
 
         for i in images:
-            conn_image_dds[images[i]['dds_index']] = i
+            image = images[i]
+            if image['format'] != IMAGE_FORMAT_LINK:
+                conn_image_dds[image['dds_index']] = i
 
         return conn_image_dds
 
@@ -226,6 +228,7 @@ class IMG:
             dds_image['data'] = data
         else:
             image['data'] = data
+
         return data
 
     def _load_image_all(self):
@@ -322,23 +325,24 @@ class IMG:
                 dds_image = dds_images[i]
                 image = images[conn_image_dds[i]]
 
-                data = dds_image['data']
-                dds_image['raw_size'] = len(data)
-                if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
-                    data = zlib.compress(data)
-                    dds_image['data_size'] = len(data)
+                if image['format'] != IMAGE_FORMAT_LINK:
+                    data = dds_image['data']
+                    dds_image['raw_size'] = len(data)
+                    if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
+                        data = zlib.compress(data)
+                        dds_image['data_size'] = len(data)
 
-                images_data.append(data)
+                    images_data.append(data)
         else:
             for i in images:
                 image = images[i]
+                if image['format'] != IMAGE_FORMAT_LINK:
+                    data = image['data']
+                    if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
+                        data = zlib.compress(data)
+                    image['size'] = len(data)
 
-                data = image['data']
-                if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
-                    data = zlib.compress(data)
-                image['size'] = len(data)
-
-                images_data.append(data)
+                    images_data.append(data)
 
         images_size = self._save_count_images_size()
         file_size = self._save_count_file_size(images_size, images_data)
@@ -383,7 +387,7 @@ class IMG:
             if version == FILE_VERSION_6:
                 # color_board count.
                 IOHelper.write_struct(io_head, 'i', len(color_boards))
-                for color_board_v6 in color_boards:
+                for color_board_v6 in color_boards.values():
                     # color_count
                     IOHelper.write_struct(io_head, 'i', len(color_board_v6))
                     for color in color_board_v6.values():
