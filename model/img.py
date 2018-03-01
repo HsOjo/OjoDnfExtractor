@@ -44,6 +44,8 @@ class IMG:
         self._color_board = None  # type: dict
         self._color_boards = None  # type: dict
 
+        self._conn_image_dds = None
+
         self._open()
 
     def _open_images(self, count):
@@ -69,12 +71,12 @@ class IMG:
                 image['zip_type'] = zip_type
                 image['w'] = w
                 image['h'] = h
-                image['data'] = None
                 image['size'] = size
                 image['x'] = x
                 image['y'] = y
                 image['mw'] = mw
                 image['mh'] = mh
+                image['data'] = None
 
                 if self._version == FILE_VERSION_5:
                     keep_1, dds_index, lx, ly, rx, ry, keep_2 = IOHelper.read_struct(io, '<7i')
@@ -118,9 +120,19 @@ class IMG:
                 'raw_size': raw_size,
                 'w': w,
                 'h': h,
+                'data': None,
             }
 
         return dds_images
+
+    def _open_conn_image_dds(self):
+        images = self._images
+        conn_image_dds = {}
+
+        for i in images:
+            conn_image_dds[images[i]['dds_index']] = i
+
+        return conn_image_dds
 
     def _open(self):
         io = self._io
@@ -129,8 +141,8 @@ class IMG:
         magic = IOHelper.read_ascii_string(io, 18)
         if magic == FILE_MAGIC or magic == FILE_MAGIC_OLD:
             if magic == FILE_MAGIC:
-                # head_size without version,count...
-                [head_size] = IOHelper.read_struct(io, 'i')
+                # images_size without version,count,extra(color_board,dds_images)...
+                [images_size] = IOHelper.read_struct(io, 'i')
             else:
                 # unknown.
                 [unknown] = IOHelper.read_struct(io, 'h')
@@ -160,6 +172,10 @@ class IMG:
             images = self._open_images(img_count)
             self._images = images
 
+            # connect id.
+            if version == FILE_VERSION_5:
+                self._conn_image_dds = self._open_conn_image_dds()
+
             # count image offset.
             if version != FILE_VERSION_1:
                 # behind header.
@@ -182,17 +198,23 @@ class IMG:
     def load_image(self, index):
         io = self._io
         image = self._images[index]
+        dds_image = None  # type: dict
+        version = self._version
 
         if image['format'] == IMAGE_FORMAT_LINK:
             return self.load_image(image['link'])
 
-        if image['data'] is not None:
-            return image['data']
-
-        if self._version == FILE_VERSION_5:
+        is_ver5 = version == FILE_VERSION_5
+        if is_ver5:
             dds_image = self._dds_images[image['dds_index']]
+            if dds_image['data'] is not None:
+                return dds_image['data']
+
             data = IOHelper.read_range(io, dds_image['offset'], dds_image['data_size'])
         else:
+            if image['data'] is not None:
+                return image['data']
+
             data = IOHelper.read_range(io, image['offset'], image['size'])
 
         if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
@@ -200,7 +222,10 @@ class IMG:
         elif image['zip_type'] != ZIP_TYPE_NONE:
             raise Exception('Unknown Zip Type.', image['zip_type'])
 
-        image['data'] = data
+        if is_ver5:
+            dds_image['data'] = data
+        else:
+            image['data'] = data
         return data
 
     def _load_image_all(self):
@@ -211,52 +236,75 @@ class IMG:
 
         return images
 
-    def _save_count_head_size(self):
+    def _save_count_images_size(self):
         images = self._images
+        version = self._version
+
+        size = 0
+
+        is_ver5 = version == FILE_VERSION_5
+
+        for image in images.values():
+            # format
+            size += 4
+            if image['format'] == IMAGE_FORMAT_LINK:
+                # link
+                size += 4
+            else:
+                # zip_type, w, h, size, x, y, mw, mh
+                size += 32
+                if is_ver5:
+                    # keep_1, dds_index, left, top, right, bottom, keep_2
+                    size += 28
+
+        return size
+
+    def _save_count_file_size(self, images_size, images_data):
         dds_images = self._dds_images
         color_board = self._color_board
         color_boards = self._color_boards
         version = self._version
 
-        head_size = 0
+        size = 0
+        if version == FILE_VERSION_1:
+            # magic, unknown
+            size += len(FILE_MAGIC_OLD) + 3
+        else:
+            # magic, images_size
+            size += len(FILE_MAGIC) + 5
+
+        # keep, version, img_count
+        size += 12
 
         is_ver5 = version == FILE_VERSION_5
 
-        if version == FILE_VERSION_4 or is_ver5:
-            # color count.
-            head_size += 4
-            # colors size.
-            head_size += len(color_board) * 4
-
         if is_ver5:
             # dds_count, img_size
-            head_size += 8
+            size += 8
             # keep, format, index, data_size, raw_size, w, h
-            head_size += len(dds_images) * 28
+            size += len(dds_images) * 28
+
+        if version == FILE_VERSION_4 or is_ver5:
+            # color count.
+            size += 4
+            # colors size.
+            size += len(color_board) * 4
 
         if version == FILE_VERSION_6:
             # color_boards_count
-            head_size += 4
+            size += 4
             for color_board_v6 in color_boards.values():
                 # color count.
-                head_size += 4
+                size += 4
                 # colors size.
-                head_size += len(color_board_v6) * 4
+                size += len(color_board_v6) * 4
 
-        for image in images.values():
-            # format
-            head_size += 4
-            if image['format'] == IMAGE_FORMAT_LINK:
-                # link
-                head_size += 4
-            else:
-                # zip_type, w, h, data, size, x, y, mw, mh
-                head_size += 36
-                if is_ver5:
-                    # keep_1, dds_index, left, top, right, bottom, keep_2
-                    head_size += 28
+        size += images_size
 
-        return head_size
+        for data in images_data:
+            size += len(data)
+
+        return size
 
     def save(self, io=None):
         images = self._load_image_all()
@@ -264,6 +312,36 @@ class IMG:
         color_boards = self._color_boards
         dds_images = self._dds_images
         version = self._version
+        conn_image_dds = self._conn_image_dds
+
+        images_data = []
+
+        # compress data, get size, add to data_list.
+        if version == FILE_VERSION_5:
+            for i in sorted(dds_images):
+                dds_image = dds_images[i]
+                image = images[conn_image_dds[i]]
+
+                data = dds_image['data']
+                dds_image['raw_size'] = len(data)
+                if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
+                    data = zlib.compress(data)
+                    dds_image['data_size'] = len(data)
+
+                images_data.append(data)
+        else:
+            for i in images:
+                image = images[i]
+
+                data = image['data']
+                if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
+                    data = zlib.compress(data)
+                image['size'] = len(data)
+
+                images_data.append(data)
+
+        images_size = self._save_count_images_size()
+        file_size = self._save_count_file_size(images_size, images_data)
 
         if io is None:
             io = self._io
@@ -277,13 +355,18 @@ class IMG:
                 # TODO: unknown, now be zero.
                 IOHelper.write_struct(io_head, 'h', 0)
             else:
+                # images_size
                 IOHelper.write_ascii_string(io_head, FILE_MAGIC)
-                IOHelper.write_struct(io_head, 'i', self._save_count_head_size())
+                IOHelper.write_struct(io_head, 'i', images_size)
 
             # keep, version, img_count
             IOHelper.write_struct(io_head, '<3i', 0, version, len(images))
 
             is_ver5 = version == FILE_VERSION_5
+
+            if is_ver5:
+                # dds_count, file_size
+                IOHelper.write_struct(io_head, '<2i', len(dds_images), file_size)
 
             if version == FILE_VERSION_4 or is_ver5:
                 # color_count
@@ -293,9 +376,6 @@ class IMG:
                     IOHelper.write_struct(io_head, '<4B', *color)
 
             if is_ver5:
-                # dds_count, file_size
-                # TODO: file_size, now be zero.
-                IOHelper.write_struct(io_head, '<2i', len(dds_images), 0)
                 for dds_image in dds_images.values():
                     IOHelper.write_struct(io_head, '<7i', dds_image['keep'], dds_image['format'], dds_image['index'],
                                           dds_image['data_size'], dds_image['raw_size'], dds_image['w'], dds_image['h'])
@@ -310,11 +390,27 @@ class IMG:
                         # color
                         IOHelper.write_struct(io_head, '<4B', *color)
 
+            for image in images.values():
+                # format
+                IOHelper.write_struct(io_head, 'i', image['format'])
+                if image['format'] == IMAGE_FORMAT_LINK:
+                    # link
+                    IOHelper.write_struct(io_head, 'i', image['link'])
+                else:
+                    # zip_type, w, h, size, x, y, mw, mh
+                    IOHelper.write_struct(io_head, '<8i', image['zip_type'], image['w'], image['h'], image['size'],
+                                          image['x'], image['y'], image['mw'], image['mh'])
+                    if is_ver5:
+                        # keep_1, dds_index, left, top, right, bottom, keep_2
+                        IOHelper.write_struct(io_head, '<7i', image['keep_1'], image['dds_index'], image['left'],
+                                              image['top'], image['right'], image['bottom'], image['keep_2'])
+
             head_data = IOHelper.read_range(io_head)
 
         io.write(head_data)
 
-        # TODO: write image data.
+        for data in images_data:
+            io.write(data)
 
     def build(self, index, color_board_index=0):
         data = self.load_image(index)
