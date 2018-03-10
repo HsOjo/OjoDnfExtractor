@@ -436,7 +436,7 @@ class IMG:
 
         return data
 
-    def get_info(self, index):
+    def info(self, index):
         image = self._images[index]  # type: dict
 
         info = {}

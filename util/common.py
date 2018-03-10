@@ -31,3 +31,8 @@ def raw_to_png(data, w, h):
         data_png = IOHelper.read_range(io_png)
 
     return data_png
+
+
+def write_file(path, data):
+    with open(path, 'bw') as io:
+        io.write(data)
