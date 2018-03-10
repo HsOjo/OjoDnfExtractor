@@ -1,3 +1,6 @@
+from util import common
+
+
 class Terminal:
     def __init__(self, prompt='OjoTerminal> '):
         self._exit = False
@@ -13,9 +16,8 @@ class Terminal:
 
         cmds = self._cmds
         while not self._exit:
-            input_str = input(self._prompt).strip()
-            if input_str != '':
-                input_args = input_str.split(' ')
+            input_args = common.param_split(input(self._prompt))
+            if len(input_args) > 0:
                 for i, v in enumerate(input_args):
                     input_args[i] = v.strip()
 
