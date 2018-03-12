@@ -34,7 +34,15 @@ class Terminal:
                             if param is not None:
                                 for i, [k, v] in enumerate(param.items()):
                                     if i < len(func_args):
-                                        func_args[i] = v['type'](func_args[i])
+                                        if v['type'] == int or v['type'] == float:
+                                            func_args[i] = v['type'](func_args[i])
+                                        elif v['type'] == bool:
+                                            if func_args[i].lower() == 'false' \
+                                                    or func_args[i] == '0' \
+                                                    or func_args[i] == '':
+                                                func_args[i] = False
+                                            else:
+                                                func_args[i] = True
                                     elif not v.get('null', False):
                                         raise Exception('param: %s cannot be null.' % k)
                             func(*func_args)
