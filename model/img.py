@@ -76,9 +76,10 @@ class IMG:
                 image['y'] = y
                 image['mw'] = mw
                 image['mh'] = mh
+                # temp
                 image['data'] = None
 
-                if self._version == FILE_VERSION_5:
+                if fmt == IMAGE_FORMAT_DXT_1 or fmt == IMAGE_FORMAT_DXT_3 or fmt == IMAGE_FORMAT_DXT_5:
                     keep_1, dds_index, lx, ly, rx, ry, keep_2 = IOHelper.read_struct(io, '<7i')
                     image['keep_1'] = keep_1
                     image['dds_index'] = dds_index
@@ -87,7 +88,8 @@ class IMG:
                     image['right'] = rx
                     image['bottom'] = ry
                     image['keep_2'] = keep_2
-                elif self._version == FILE_VERSION_1:
+
+                if self._version == FILE_VERSION_1:
                     image['offset'] = io.tell()
                     io.seek(size, SEEK_CUR)
 
@@ -132,7 +134,9 @@ class IMG:
         for i in images:
             image = images[i]
             if image['format'] != IMAGE_FORMAT_LINK:
-                conn_image_dds[image['dds_index']] = i
+                dds_index = image.get('dds_index')
+                if dds_index is not None:
+                    conn_image_dds[dds_index] = i
 
         return conn_image_dds
 
@@ -188,12 +192,11 @@ class IMG:
                         dds_image = dds_images[i]
                         dds_image['offset'] = offset
                         offset += dds_image['data_size']
-                else:
-                    for i in images:
-                        image = images[i]
-                        if image['format'] != IMAGE_FORMAT_LINK:
-                            image['offset'] = offset
-                            offset += image['size']
+                for i in images:
+                    image = images[i]
+                    if image['format'] != IMAGE_FORMAT_LINK:
+                        image['offset'] = offset
+                        offset += image['size']
         else:
             raise Exception('Not NPK File.')
 
@@ -201,13 +204,13 @@ class IMG:
         io = self._io
         image = self._images[index]
         dds_image = None  # type: dict
-        version = self._version
 
-        if image['format'] == IMAGE_FORMAT_LINK:
+        fmt = image['format']
+        if fmt == IMAGE_FORMAT_LINK:
             return self.load_image(image['link'])
 
-        is_ver5 = version == FILE_VERSION_5
-        if is_ver5:
+        dds_fmt = fmt == IMAGE_FORMAT_DXT_1 or fmt == IMAGE_FORMAT_DXT_3 or fmt == IMAGE_FORMAT_DXT_5
+        if dds_fmt:
             dds_image = self._dds_images[image['dds_index']]
             if dds_image['data'] is not None:
                 return dds_image['data']
@@ -224,14 +227,14 @@ class IMG:
         elif image['zip_type'] != ZIP_TYPE_NONE:
             raise Exception('Unknown Zip Type.', image['zip_type'])
 
-        if is_ver5:
+        if dds_fmt:
             dds_image['data'] = data
         else:
             image['data'] = data
 
         return data
 
-    def _load_image_all(self):
+    def load_image_all(self):
         images = self._images
 
         for i in images:
@@ -310,7 +313,7 @@ class IMG:
         return size
 
     def save(self, io=None):
-        images = self._load_image_all()
+        images = self.load_image_all()
         color_board = self._color_board
         color_boards = self._color_boards
         dds_images = self._dds_images

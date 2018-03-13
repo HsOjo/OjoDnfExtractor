@@ -1,3 +1,5 @@
+import traceback
+
 from util import common
 
 
@@ -46,8 +48,8 @@ class Terminal:
                                     elif not v.get('null', False):
                                         raise Exception('param: %s cannot be null.' % k)
                             func(*func_args)
-                        except Exception as e:
-                            print(e)
+                        except:
+                            traceback.print_exc()
 
     def bind_function(self, cmd, func, param: dict, help):
         bind = {

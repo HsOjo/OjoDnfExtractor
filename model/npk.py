@@ -46,7 +46,7 @@ class NPK:
 
         return file['data']
 
-    def _load_file_all(self):
+    def load_file_all(self):
         files = self._files
 
         for name in files:
@@ -56,7 +56,7 @@ class NPK:
 
     def save(self, io=None):
         # load_file file data.
-        files = self._load_file_all()
+        files = self.load_file_all()
 
         if io is None:
             io = self._io

@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 
 from lib.bass import Bass
@@ -21,6 +22,28 @@ class NPKTerminal(Terminal):
             'type': {'type': str, 'help': 'open file type, img/ogg'},
             'file': {'type': str, 'help': 'file name in file list.'},
         }, 'open a file in file list.')
+        self.bind_function('load_all', npk.load_file_all(), {}, 'load all files.')
+        self.bind_function('extract_all', self.extract_all, {
+            'dir': {'type': str, 'help': 'path of extract dir.'},
+            'mode': {'type': str, 'null': True, 'help': 'mode with filename. choices: wodir(default), raw'},
+        }, 'extract all files to directory.')
+
+    def extract_all(self, path_dir, mode='wodir'):
+        npk = self._npk
+        npk.load_file_all()
+        os.makedirs(path_dir, exist_ok=True)
+        for i in npk.files:
+            [dirname, filename] = os.path.split(i)
+            data = npk.load_file(i)
+            os.makedirs(path_dir, exist_ok=True)
+            if mode == 'raw':
+                dir_ = path_dir + '/%s' % dirname
+                os.makedirs(dir_, exist_ok=True)
+                with open('%s/%s' % (dir_, filename), 'bw') as io:
+                    io.write(data)
+            elif mode == 'wodir':
+                with open('%s/%s' % (path_dir, filename), 'bw') as io:
+                    io.write(data)
 
     def open(self, type_, file):
         npk = self._npk
@@ -47,14 +70,29 @@ class IMGTerminal(Terminal):
         }, 'print image info.')
         self.bind_function('color_board', lambda: print(img.color_board), {}, 'print color_board.')
         self.bind_function('color_boards', lambda: print(img.color_boards), {}, 'print color_boards.')
-        self.bind_function('extract', lambda file, index, color_board_index: common.write_file(file, img.build(index,
-                                                                                                               color_board_index)),
+        self.bind_function('extract', lambda file, index, color_board_index=0: common.write_file(file, img.build(index,
+                                                                                                                 color_board_index)),
                            {
                                'file': {'type': str, 'help': 'save file path.'},
                                'index': {'type': int, 'help': 'image index in image list'},
                                'color_board_index': {'type': int, 'null': True,
                                                      'help': 'color_board_index in color_board list'},
                            }, 'extract png file.')
+        self.bind_function('load_all', img.load_image_all, {}, 'load all images.')
+        self.bind_function('extract_all', self.extract_all, {
+            'dir': {'type': str, 'help': 'path of extract dir.'},
+            'color_board_index': {'type': int, 'null': True,
+                                  'help': 'color_board_index in color_board list'},
+        }, 'extract all images to directory.')
+
+    def extract_all(self, path_dir, color_board_index=0):
+        img = self._img
+        img.load_image_all()
+        os.makedirs(path_dir, exist_ok=True)
+        for i in img.images:
+            data = img.build(i, color_board_index)
+            with open('%s/%s.png' % (path_dir, i), 'bw') as io:
+                io.write(data)
 
     def info(self, index=None):
         img = self._img
