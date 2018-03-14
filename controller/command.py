@@ -14,6 +14,9 @@ class NPKTerminal(Terminal):
         self._npk = npk
 
         self.bind_function('files', lambda: print(npk.files), {}, 'print file list.')
+        self.bind_function('info', self.info, {
+            'index': {'type': str, 'null': True, 'help': 'file name in file list'},
+        }, 'print file info.')
         self.bind_function('extract', lambda file, name: common.write_file(file, npk.load_file(name)), {
             'file': {'type': str, 'help': 'save file path.'},
             'name': {'type': str, 'help': 'file name in file list.'},
@@ -57,6 +60,14 @@ class NPKTerminal(Terminal):
             ogg.destroy()
         else:
             raise Exception('Unsupport type_: %s' % type_)
+
+    def info(self, name=None):
+        npk = self._npk
+        if name is not None:
+            print(npk.info(name))
+        else:
+            for i in npk.files:
+                print(npk.info(i))
 
 
 class IMGTerminal(Terminal):
@@ -123,8 +134,8 @@ class OGGTerminal(Terminal):
         super().__init__('OjoEx[OGG]> ')
         ogg.get_lentime()
         self.bind_function('set_loop', ogg.set_loop, {
-            'loop': {'type': bool, 'help': 'is loop.'}
-        }, 'sound loop play.')
+            '_loop': {'type': bool, 'help': 'is _loop.'}
+        }, 'sound _loop play.')
         self.bind_function('play', ogg.play, {
             'replay': {'type': bool, 'null': True, 'help': 'is replay.'}
         }, 'play sound.')
@@ -146,7 +157,8 @@ class OGGTerminal(Terminal):
 
 
 class Command:
-    def __init__(self):
+    def __init__(self, args):
+        self.args = args
         self._term = Terminal('OjoDnfExtractor> ')
         self._term.bind_function('open', self.open, {
             'type': {'type': str, 'help': 'open file type, img/npk'},
@@ -154,9 +166,10 @@ class Command:
         }, 'open a file.')
         Bass.init()
 
-    def start(self, args):
+    def start(self):
         self._term.start()
         Bass.free()
+        return 0
 
     def open(self, type, file):
         if type == 'npk':

@@ -52,69 +52,72 @@ class Bass:
         else:
             raise Exception('Bass error:Unsupport type.')
 
-        self.id = BASS_StreamCreateFile(mem, path, 0, size, 0)
-        self.loop = False
+        self._stream = BASS_StreamCreateFile(mem, path, 0, size, 0)
+        self._loop = False
+
+    def get_loop(self):
+        return self._loop
 
     def set_loop(self, loop=True):
         if loop:
-            BASS_ChannelFlags(self.id, BASS_SAMPLE_LOOP, BASS_SAMPLE_LOOP)
+            BASS_ChannelFlags(self._stream, BASS_SAMPLE_LOOP, BASS_SAMPLE_LOOP)
         else:
-            BASS_ChannelFlags(self.id, 0, BASS_SAMPLE_LOOP)
-        self.loop = loop
+            BASS_ChannelFlags(self._stream, 0, BASS_SAMPLE_LOOP)
+        self._loop = loop
 
     def play(self, replay=True):
-        res = BASS_ChannelPlay(self.id, replay)  # type:bool
+        res = BASS_ChannelPlay(self._stream, replay)  # type:bool
         return res
 
     def pause(self):
-        res = BASS_ChannelPause(self.id)  # type:bool
+        res = BASS_ChannelPause(self._stream)  # type:bool
         return res
 
     def stop(self):
-        res = BASS_ChannelStop(self.id)  # type:bool
+        res = BASS_ChannelStop(self._stream)  # type:bool
         return res
 
     def get_playpos(self):
-        res = BASS_ChannelGetPosition(self.id, 0)  # type:int
+        res = BASS_ChannelGetPosition(self._stream, 0)  # type:int
         return res
 
     def set_playpos(self, pos):
-        res = BASS_ChannelSetPosition(self.id, pos, 0)  # type:bool
+        res = BASS_ChannelSetPosition(self._stream, pos, 0)  # type:bool
         return res
 
     def get_length(self):
-        res = BASS_ChannelGetLength(self.id, 0)  # type:int
+        res = BASS_ChannelGetLength(self._stream, 0)  # type:int
         return res
 
     def get_status(self):
         """
         :return:0=stop,1=play,3=pause
         """
-        res = BASS_ChannelGetLength(self.id)  # type:int
+        res = BASS_ChannelGetLength(self._stream)  # type:int
         return Bass.stat_dict.get(res, 'unknown')
 
     def destroy(self):
-        res = BASS_StreamFree(self.id)  # type:bool
+        res = BASS_StreamFree(self._stream)  # type:bool
         return res
 
     def get_volume(self):
         res = c_float()
-        BASS_ChannelGetAttribute(self.id, BASS_ATTRIB_VOL, res)
+        BASS_ChannelGetAttribute(self._stream, BASS_ATTRIB_VOL, res)
         res = res.value  # type:float
         return res
 
     def set_volume(self, vol):
-        res = BASS_ChannelSetAttribute(self.id, BASS_ATTRIB_VOL, vol)  # type:bool
+        res = BASS_ChannelSetAttribute(self._stream, BASS_ATTRIB_VOL, vol)  # type:bool
         return res
 
     def get_speed(self):
         res = c_float(44100)
-        BASS_ChannelGetAttribute(self.id, BASS_ATTRIB_FREQ, res)
+        BASS_ChannelGetAttribute(self._stream, BASS_ATTRIB_FREQ, res)
         res = res.value / Bass.freq  # type:float
         return res
 
     def set_speed(self, speed):
-        res = BASS_ChannelSetAttribute(self.id, BASS_ATTRIB_FREQ, speed * Bass.freq)  # type:bool
+        res = BASS_ChannelSetAttribute(self._stream, BASS_ATTRIB_FREQ, speed * Bass.freq)  # type:bool
         return res
 
     def get_playtime(self):
@@ -127,11 +130,11 @@ class Bass:
         return self.postosec(self.get_length())
 
     def postosec(self, pos):
-        res = BASS_ChannelSeconds2Bytes(self.id, pos)  # type:float
+        res = BASS_ChannelSeconds2Bytes(self._stream, pos)  # type:float
         return res
 
     def sectopos(self, sec):
-        res = BASS_ChannelSeconds2Bytes(self.id, sec)  # type:int
+        res = BASS_ChannelSeconds2Bytes(self._stream, sec)  # type:int
         return res
 
 

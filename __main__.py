@@ -1,4 +1,4 @@
-import argparse
+import argparse,sys
 
 from controller.command import Command
 from controller.gui import GUI
@@ -9,10 +9,10 @@ parser.add_argument('files', metavar='file', nargs='*')
 
 args = parser.parse_args()
 if args.mode == 'cmd':
-    controller = Command()
+    controller = Command(args)
 elif args.mode == 'gui':
-    controller = GUI()
+    controller = GUI(args)
 else:
     raise Exception('Unknown mode.')
 
-controller.start(args)
+exit(controller.start())

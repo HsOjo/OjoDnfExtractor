@@ -99,6 +99,16 @@ class NPK:
             io.seek(file['offset'])
             io.write(file['data'])
 
+    def info(self, name):
+        file = self._files[name]  # type: dict
+
+        info = {}
+        for k, v in file.items():
+            if k != 'data' and 'keep' not in k:
+                info[k] = v
+
+        return info
+
     @staticmethod
     def _decrypt_name(data):
         data = common.zfill_bytes(data, 256)
