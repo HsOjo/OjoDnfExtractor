@@ -35,6 +35,7 @@ class NPKTerminal(Terminal):
         for i in npk.files:
             [dirname, filename] = os.path.split(i)
             data = npk.load_file(i)
+            print('writing: %s' % i)
             os.makedirs(path_dir, exist_ok=True)
             if mode == 'raw':
                 dir_ = path_dir + '/%s' % dirname
@@ -65,11 +66,15 @@ class IMGTerminal(Terminal):
 
         self.bind_function('version', lambda: print(img.version), {}, 'print IMG version.')
         self.bind_function('images', lambda: print(img.images), {}, 'print image list.')
+        self.bind_function('dds_images', lambda: print(img.dds_images), {}, 'print dds image list.')
         self.bind_function('info', self.info, {
             'index': {'type': int, 'null': True, 'help': 'image index in image list'},
         }, 'print image info.')
-        self.bind_function('color_board', lambda: print(img.color_board), {}, 'print color_board.')
-        self.bind_function('color_boards', lambda: print(img.color_boards), {}, 'print color_boards.')
+        self.bind_function('dds_info', self.info_dds, {
+            'index': {'type': int, 'null': True, 'help': 'dds_image index in dds_image list'},
+        }, 'print dds_image info.')
+        self.bind_function('color_board', lambda: print(img.color_board), {}, 'print color board.')
+        self.bind_function('color_boards', lambda: print(img.color_boards), {}, 'print color boards.')
         self.bind_function('extract', lambda file, index, color_board_index=0: common.write_file(file, img.build(index,
                                                                                                                  color_board_index)),
                            {
@@ -90,6 +95,7 @@ class IMGTerminal(Terminal):
         img.load_image_all()
         os.makedirs(path_dir, exist_ok=True)
         for i in img.images:
+            print('writing: %s' % i)
             data = img.build(i, color_board_index)
             with open('%s/%s.png' % (path_dir, i), 'bw') as io:
                 io.write(data)
@@ -101,6 +107,14 @@ class IMGTerminal(Terminal):
         else:
             for i in img.images:
                 print(img.info(i))
+
+    def info_dds(self, index=None):
+        img = self._img
+        if index is not None:
+            print(img.info_dds(index))
+        else:
+            for i in img.dds_images:
+                print(i, img.info_dds(i))
 
 
 class OGGTerminal(Terminal):

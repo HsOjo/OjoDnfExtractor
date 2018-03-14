@@ -21,6 +21,8 @@ IMAGE_FORMAT_DXT_1 = 18
 IMAGE_FORMAT_DXT_3 = 19
 IMAGE_FORMAT_DXT_5 = 20
 
+IMAGE_FORMATS_DDS = (IMAGE_FORMAT_DXT_1, IMAGE_FORMAT_DXT_3, IMAGE_FORMAT_DXT_5)
+
 PIX_SIZE = {
     IMAGE_FORMAT_1555: 2,
     IMAGE_FORMAT_4444: 2,
@@ -30,9 +32,9 @@ PIX_SIZE = {
     IMAGE_FORMAT_DXT_5: 4,
 }
 
-ZIP_TYPE_NONE = 5
-ZIP_TYPE_ZLIB = 6
-ZIP_TYPE_DDS_ZLIB = 7
+IMAGE_EXTRA_NONE = 5
+IMAGE_EXTRA_ZLIB = 6
+IMAGE_EXTRA_DDS_ZLIB = 7
 
 
 class IMG:
@@ -43,8 +45,6 @@ class IMG:
         self._version = None
         self._color_board = None  # type: dict
         self._color_boards = None  # type: dict
-
-        self._conn_image_dds = None
 
         self._open()
 
@@ -62,13 +62,13 @@ class IMG:
                 [link] = IOHelper.read_struct(io, '<i')
                 image['link'] = link
             else:
-                zip_type, w, h, size, x, y, mw, mh = IOHelper.read_struct(io, '<8i')
+                extra, w, h, size, x, y, mw, mh = IOHelper.read_struct(io, '<8i')
 
                 # fix size to real size.
-                if zip_type == ZIP_TYPE_NONE:
+                if extra == IMAGE_EXTRA_NONE:
                     size = w * h * PIX_SIZE[fmt]
 
-                image['zip_type'] = zip_type
+                image['extra'] = extra
                 image['w'] = w
                 image['h'] = h
                 image['size'] = size
@@ -79,7 +79,7 @@ class IMG:
                 # temp
                 image['data'] = None
 
-                if fmt == IMAGE_FORMAT_DXT_1 or fmt == IMAGE_FORMAT_DXT_3 or fmt == IMAGE_FORMAT_DXT_5:
+                if extra == IMAGE_EXTRA_DDS_ZLIB:
                     keep_1, dds_index, lx, ly, rx, ry, keep_2 = IOHelper.read_struct(io, '<7i')
                     image['keep_1'] = keep_1
                     image['dds_index'] = dds_index
@@ -127,19 +127,6 @@ class IMG:
 
         return dds_images
 
-    def _open_conn_image_dds(self):
-        images = self._images
-        conn_image_dds = {}
-
-        for i in images:
-            image = images[i]
-            if image['format'] != IMAGE_FORMAT_LINK:
-                dds_index = image.get('dds_index')
-                if dds_index is not None:
-                    conn_image_dds[dds_index] = i
-
-        return conn_image_dds
-
     def _open(self):
         io = self._io
         io.seek(0)
@@ -178,10 +165,6 @@ class IMG:
             images = self._open_images(img_count)
             self._images = images
 
-            # connect id.
-            if version == FILE_VERSION_5:
-                self._conn_image_dds = self._open_conn_image_dds()
-
             # count image offset.
             if version != FILE_VERSION_1:
                 # behind header.
@@ -194,7 +177,7 @@ class IMG:
                         offset += dds_image['data_size']
                 for i in images:
                     image = images[i]
-                    if image['format'] != IMAGE_FORMAT_LINK:
+                    if image['format'] != IMAGE_FORMAT_LINK and image['extra'] != IMAGE_EXTRA_DDS_ZLIB:
                         image['offset'] = offset
                         offset += image['size']
         else:
@@ -205,12 +188,10 @@ class IMG:
         image = self._images[index]
         dds_image = None  # type: dict
 
-        fmt = image['format']
-        if fmt == IMAGE_FORMAT_LINK:
+        if image['format'] == IMAGE_FORMAT_LINK:
             return self.load_image(image['link'])
 
-        dds_fmt = fmt == IMAGE_FORMAT_DXT_1 or fmt == IMAGE_FORMAT_DXT_3 or fmt == IMAGE_FORMAT_DXT_5
-        if dds_fmt:
+        if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
             dds_image = self._dds_images[image['dds_index']]
             if dds_image['data'] is not None:
                 return dds_image['data']
@@ -222,12 +203,12 @@ class IMG:
 
             data = IOHelper.read_range(io, image['offset'], image['size'])
 
-        if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
+        if image['extra'] == IMAGE_EXTRA_ZLIB or image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
             data = zlib.decompress(data)
-        elif image['zip_type'] != ZIP_TYPE_NONE:
-            raise Exception('Unknown Zip Type.', image['zip_type'])
+        elif image['extra'] != IMAGE_EXTRA_NONE:
+            raise Exception('Unknown Zip Type.', image['extra'])
 
-        if dds_fmt:
+        if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
             dds_image['data'] = data
         else:
             image['data'] = data
@@ -244,11 +225,7 @@ class IMG:
 
     def _save_count_images_size(self):
         images = self._images
-        version = self._version
-
         size = 0
-
-        is_ver5 = version == FILE_VERSION_5
 
         for image in images.values():
             # format
@@ -257,9 +234,9 @@ class IMG:
                 # link
                 size += 4
             else:
-                # zip_type, w, h, size, x, y, mw, mh
+                # extra, w, h, size, x, y, mw, mh
                 size += 32
-                if is_ver5:
+                if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
                     # keep_1, dds_index, left, top, right, bottom, keep_2
                     size += 28
 
@@ -318,7 +295,6 @@ class IMG:
         color_boards = self._color_boards
         dds_images = self._dds_images
         version = self._version
-        conn_image_dds = self._conn_image_dds
 
         images_data = []
 
@@ -326,22 +302,18 @@ class IMG:
         if version == FILE_VERSION_5:
             for i in sorted(dds_images):
                 dds_image = dds_images[i]
-                image = images[conn_image_dds[i]]
+                data = dds_image['data']
+                dds_image['raw_size'] = len(data)
+                data = zlib.compress(data)
+                dds_image['data_size'] = len(data)
 
-                if image['format'] != IMAGE_FORMAT_LINK:
-                    data = dds_image['data']
-                    dds_image['raw_size'] = len(data)
-                    if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
-                        data = zlib.compress(data)
-                        dds_image['data_size'] = len(data)
-
-                    images_data.append(data)
+                images_data.append(data)
         else:
             for i in images:
                 image = images[i]
                 if image['format'] != IMAGE_FORMAT_LINK:
                     data = image['data']
-                    if image['zip_type'] == ZIP_TYPE_ZLIB or image['zip_type'] == ZIP_TYPE_DDS_ZLIB:
+                    if image['extra'] == IMAGE_EXTRA_ZLIB or image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
                         data = zlib.compress(data)
                     image['size'] = len(data)
 
@@ -404,10 +376,10 @@ class IMG:
                     # link
                     IOHelper.write_struct(io_head, 'i', image['link'])
                 else:
-                    # zip_type, w, h, size, x, y, mw, mh
-                    IOHelper.write_struct(io_head, '<8i', image['zip_type'], image['w'], image['h'], image['size'],
+                    # extra, w, h, size, x, y, mw, mh
+                    IOHelper.write_struct(io_head, '<8i', image['extra'], image['w'], image['h'], image['size'],
                                           image['x'], image['y'], image['mw'], image['mh'])
-                    if is_ver5:
+                    if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
                         # keep_1, dds_index, left, top, right, bottom, keep_2
                         IOHelper.write_struct(io_head, '<7i', image['keep_1'], image['dds_index'], image['left'],
                                               image['top'], image['right'], image['bottom'], image['keep_2'])
@@ -422,19 +394,23 @@ class IMG:
     def build(self, index, color_board_index=0):
         data = self.load_image(index)
         image = self._images[index]
+        version = self._version
 
-        if self._version == FILE_VERSION_1 or self._version == FILE_VERSION_2:
+        if version == FILE_VERSION_1 or version == FILE_VERSION_2:
             data = IMG._nximg_to_raw(data, image['format'])
-        elif self._version == FILE_VERSION_4:
+        elif version == FILE_VERSION_4:
             data = IMG._indexes_to_raw(data, self._color_board)
-        elif self._version == FILE_VERSION_5:
-            data = common.dds_to_png(data)
-        elif self._version == FILE_VERSION_6:
+        elif version == FILE_VERSION_5:
+            if image['extra'] == IMAGE_EXTRA_DDS_ZLIB and (image['format'] in IMAGE_FORMATS_DDS):
+                data = common.dds_to_png(data)
+            else:
+                data = IMG._nximg_to_raw(data, image['format'])
+        elif version == FILE_VERSION_6:
             data = IMG._indexes_to_raw(data, self._color_boards[color_board_index])
         else:
-            raise Exception('Unknown IMG Version.', self._version)
+            raise Exception('Unknown IMG Version.', version)
 
-        if self._version == FILE_VERSION_1 or self._version == FILE_VERSION_2 or self._version == FILE_VERSION_4 or self._version == FILE_VERSION_6:
+        if version == FILE_VERSION_1 or version == FILE_VERSION_2 or version == FILE_VERSION_4 or version == FILE_VERSION_6:
             data = common.raw_to_png(data, image['w'], image['h'])
 
         return data
@@ -447,16 +423,15 @@ class IMG:
             if k != 'data' and 'keep' not in k:
                 info[k] = v
 
-        dds_id = info.get('dds_index')
-        if dds_id is not None:
-            info_dds_image = {}
+        return info
 
-            dds_image = self._dds_images[dds_id]
-            for k, v in dds_image.items():
-                if 'keep' not in k:
-                    info_dds_image[k] = v
+    def info_dds(self, index):
+        image = self._dds_images[index]  # type: dict
 
-            info['dds_image'] = info_dds_image
+        info = {}
+        for k, v in image.items():
+            if k != 'data' and 'keep' not in k:
+                info[k] = v
 
         return info
 
