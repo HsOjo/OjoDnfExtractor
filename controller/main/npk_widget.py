@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 
 from PyQt5.QtWidgets import QWidget, QTableWidgetItem
@@ -7,9 +8,11 @@ from view.main.npk_widget import Ui_NPKWidget
 
 
 class NPKWidget(Ui_NPKWidget, QWidget):
-    def __init__(self, path):
+    def __init__(self, path, upper_event):
         super().__init__()
         self.setupUi(self)
+
+        self._upper_event = upper_event
 
         if type(path) == bytes:
             io = BytesIO(path)
@@ -21,8 +24,21 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         self._npk = NPK(io)
         self.refresh_files()
 
+        self.pb_load_img.clicked.connect(self._pb_load_img_clicked)
+
+    def _pb_load_img_clicked(self):
+        ue = self._upper_event
+        npk = self._npk
+        tw = self.tw_files
+        row = tw.currentRow()
+        path = tw.item(row, 1).text()
+        data = npk.load_file(path)
+        [dirname, filename] = os.path.split(path)
+
+        ue['open_file']('img', filename, data)
+
     def refresh_files(self):
-        tw = self.tw_file_list
+        tw = self.tw_files
         npk = self._npk
 
         row_count = tw.rowCount()

@@ -21,6 +21,7 @@ IMAGE_FORMAT_DXT_1 = 18
 IMAGE_FORMAT_DXT_3 = 19
 IMAGE_FORMAT_DXT_5 = 20
 
+IMAGE_FORMATS_RAW = (IMAGE_FORMAT_1555, IMAGE_FORMAT_4444, IMAGE_FORMAT_8888)
 IMAGE_FORMATS_DDS = (IMAGE_FORMAT_DXT_1, IMAGE_FORMAT_DXT_3, IMAGE_FORMAT_DXT_5)
 
 PIX_SIZE = {
@@ -40,8 +41,8 @@ IMAGE_EXTRA_DDS_ZLIB = 7
 class IMG:
     def __init__(self, io):
         self._io = io  # type: FileIO
-        self._images = None  # type: dict
-        self._dds_images = None  # type: dict
+        self._images = None  # type: list
+        self._dds_images = None  # type: list
         self._version = None
         self._color_board = None  # type: dict
         self._color_boards = None  # type: dict
@@ -50,7 +51,7 @@ class IMG:
 
     def _open_images(self, count):
         io = self._io
-        images = {}
+        images = []
 
         for i in range(count):
             image = {}
@@ -93,7 +94,7 @@ class IMG:
                     image['offset'] = io.tell()
                     io.seek(size, SEEK_CUR)
 
-            images[i] = image
+            images.append(image)
 
         return images
 
@@ -111,10 +112,10 @@ class IMG:
     def _open_dds_images(self, dds_count):
         io = self._io
 
-        dds_images = {}
+        dds_images = []
         for i in range(dds_count):
             keep, fmt, index, data_size, raw_size, w, h = IOHelper.read_struct(io, '<7i')
-            dds_images[i] = {
+            dds_image = {
                 'keep': keep,
                 'format': fmt,
                 'index': index,
@@ -124,6 +125,7 @@ class IMG:
                 'h': h,
                 'data': None,
             }
+            dds_images.append(dds_image)
 
         return dds_images
 
@@ -171,11 +173,11 @@ class IMG:
                 offset = io.tell()
                 if version == FILE_VERSION_5:
                     dds_images = self._dds_images
-                    for i in dds_images:
+                    for i in range(len(dds_images)):
                         dds_image = dds_images[i]
                         dds_image['offset'] = offset
                         offset += dds_image['data_size']
-                for i in images:
+                for i in range(len(images)):
                     image = images[i]
                     if image['format'] != IMAGE_FORMAT_LINK and image['extra'] != IMAGE_EXTRA_DDS_ZLIB:
                         image['offset'] = offset
@@ -218,7 +220,7 @@ class IMG:
     def load_image_all(self):
         images = self._images
 
-        for i in images:
+        for i in range(len(images)):
             self.load_image(i)
 
         return images
@@ -227,7 +229,7 @@ class IMG:
         images = self._images
         size = 0
 
-        for image in images.values():
+        for image in images:
             # format
             size += 4
             if image['format'] == IMAGE_FORMAT_LINK:
@@ -355,7 +357,7 @@ class IMG:
                     IOHelper.write_struct(io_head, '<4B', *color)
 
             if is_ver5:
-                for dds_image in dds_images.values():
+                for dds_image in dds_images:
                     IOHelper.write_struct(io_head, '<7i', dds_image['keep'], dds_image['format'], dds_image['index'],
                                           dds_image['data_size'], dds_image['raw_size'], dds_image['w'], dds_image['h'])
 
@@ -369,7 +371,7 @@ class IMG:
                         # color
                         IOHelper.write_struct(io_head, '<4B', *color)
 
-            for image in images.values():
+            for image in images:
                 # format
                 IOHelper.write_struct(io_head, 'i', image['format'])
                 if image['format'] == IMAGE_FORMAT_LINK:
@@ -410,8 +412,12 @@ class IMG:
         else:
             raise Exception('Unknown IMG Version.', version)
 
-        if version == FILE_VERSION_1 or version == FILE_VERSION_2 or version == FILE_VERSION_4 or version == FILE_VERSION_6:
-            data = common.raw_to_png(data, image['w'], image['h'])
+        if image['format'] in IMAGE_FORMATS_RAW:
+            if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
+                dds_image = self._dds_images[image['dds_index']]
+                data = common.raw_to_png(data, dds_image['w'], dds_image['h'])
+            else:
+                data = common.raw_to_png(data, image['w'], image['h'])
 
         return data
 
@@ -503,12 +509,12 @@ class IMG:
     @property
     def images(self):
         if self._images is not None:
-            return list(self._images.keys())
+            return list(range(len(self._images)))
 
     @property
     def dds_images(self):
         if self._dds_images is not None:
-            return list(self._dds_images.keys())
+            return list(range(len(self._dds_images)))
 
     @property
     def version(self):

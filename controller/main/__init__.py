@@ -13,6 +13,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.setupUi(self)
 
         self.tab_widgets = []
+        self._event = {'open_file': self.open_file}
 
         self.a_open.triggered.connect(self._a_open_triggered)
 
@@ -20,12 +21,18 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.tab_widgets.append(widget)
         self.tw_content.addTab(widget, name)
 
+    def open_file(self, type, name, path):
+        if type == 'npk':
+            self.add_tab_widget(name, NPKWidget(path, self._event))
+        elif type == 'img':
+            self.add_tab_widget(name, IMGWidget(path, self._event))
+
     def _a_open_triggered(self, b):
         [path, type] = QFileDialog.getOpenFileName(parent=self, caption='Open File', directory='./',
                                                    filter='NPK Files(*.npk);;IMG Files(*.img);;All Files(*)')
         if os.path.exists(path):
             [dir, file] = os.path.split(path)
             if file[-4:].lower() == '.npk':
-                self.add_tab_widget(file, NPKWidget(path))
+                self.open_file('npk', file, path)
             elif file[-4:].lower() == '.img':
-                self.add_tab_widget(file, IMGWidget(path))
+                self.open_file('img', file, path)

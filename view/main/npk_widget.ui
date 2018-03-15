@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>NPK</string>
+   <string>NPK_Widget</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
    <item row="0" column="0" rowspan="2">
@@ -21,7 +21,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
-       <widget class="QTableWidget" name="tw_file_list">
+       <widget class="QTableWidget" name="tw_files">
         <property name="selectionMode">
          <enum>QAbstractItemView::SingleSelection</enum>
         </property>
@@ -129,19 +129,6 @@
       <string>文件操作</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="3" column="3">
-       <widget class="QPushButton" name="pb_replace">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>替换文件</string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="1">
        <widget class="QPushButton" name="pb_extract">
         <property name="sizePolicy">
@@ -155,8 +142,8 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="pb_rename">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pb_add">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
           <horstretch>0</horstretch>
@@ -164,11 +151,24 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>文件更名</string>
+         <string>添加文件</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="3">
+      <item row="0" column="1" colspan="2">
+       <widget class="QPushButton" name="pb_load_img">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>加载IMG文件</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
        <widget class="QPushButton" name="pb_remove">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
@@ -181,8 +181,8 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="pb_load_img">
+      <item row="3" column="2">
+       <widget class="QPushButton" name="pb_replace">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
           <horstretch>0</horstretch>
@@ -190,20 +190,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>加载IMG</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QPushButton" name="pb_add">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>添加文件</string>
+         <string>替换文件</string>
         </property>
        </widget>
       </item>

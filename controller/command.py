@@ -67,7 +67,7 @@ class NPKTerminal(Terminal):
             print(npk.info(name))
         else:
             for i in npk.files:
-                print(npk.info(i))
+                print(i, npk.info(i))
 
 
 class IMGTerminal(Terminal):
@@ -117,7 +117,7 @@ class IMGTerminal(Terminal):
             print(img.info(index))
         else:
             for i in img.images:
-                print(img.info(i))
+                print(i, img.info(i))
 
     def info_dds(self, index=None):
         img = self._img
