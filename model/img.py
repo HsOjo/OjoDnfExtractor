@@ -37,15 +37,31 @@ IMAGE_EXTRA_NONE = 5
 IMAGE_EXTRA_ZLIB = 6
 IMAGE_EXTRA_DDS_ZLIB = 7
 
+IMAGE_FORMAT_TEXT = {
+    IMAGE_FORMAT_1555: '1555',
+    IMAGE_FORMAT_4444: '4444',
+    IMAGE_FORMAT_8888: '8888',
+    IMAGE_FORMAT_LINK: 'link',
+    IMAGE_FORMAT_DXT_1: 'dxt_1',
+    IMAGE_FORMAT_DXT_3: 'dxt_3',
+    IMAGE_FORMAT_DXT_5: 'dxt_5',
+}
+
+IMAGE_EXTRA_TEXT = {
+    IMAGE_EXTRA_NONE: 'none',
+    IMAGE_EXTRA_ZLIB: 'zlib',
+    IMAGE_EXTRA_DDS_ZLIB: 'dds_zlib',
+}
+
 
 class IMG:
     def __init__(self, io):
         self._io = io  # type: FileIO
-        self._images = None  # type: list
-        self._dds_images = None  # type: list
-        self._version = None
-        self._color_board = None  # type: dict
-        self._color_boards = None  # type: dict
+        self._images = []
+        self._dds_images = []
+        self._version = 0
+        self._color_board = []
+        self._color_boards = []
 
         self._open()
 
@@ -103,9 +119,10 @@ class IMG:
 
         [count] = IOHelper.read_struct(io, 'i')
 
-        colors = {}
+        colors = []
         for i in range(count):
-            colors[i] = IOHelper.read_struct(io, '<4B')
+            color = IOHelper.read_struct(io, '<4B')
+            colors.append(color)
 
         return colors
 
@@ -156,11 +173,12 @@ class IMG:
                 self._dds_images = self._open_dds_images(dds_count)
             elif version == FILE_VERSION_6:
                 # multiple color board.
-                color_boards = {}
+                color_boards = []
 
                 [color_board_count] = IOHelper.read_struct(io, 'i')
                 for i in range(color_board_count):
-                    color_boards[i] = self._open_color_board()
+                    color_board = self._open_color_board()
+                    color_boards.append(color_board)
 
                 self._color_boards = color_boards
 
@@ -278,7 +296,7 @@ class IMG:
         if version == FILE_VERSION_6:
             # color_boards_count
             size += 4
-            for color_board_v6 in color_boards.values():
+            for color_board_v6 in color_boards:
                 # color count.
                 size += 4
                 # colors size.
@@ -352,7 +370,7 @@ class IMG:
             if version == FILE_VERSION_4 or is_ver5:
                 # color_count
                 IOHelper.write_struct(io_head, 'i', len(color_board))
-                for color in color_board.values():
+                for color in color_board:
                     # color
                     IOHelper.write_struct(io_head, '<4B', *color)
 
@@ -364,10 +382,10 @@ class IMG:
             if version == FILE_VERSION_6:
                 # color_board count.
                 IOHelper.write_struct(io_head, 'i', len(color_boards))
-                for color_board_v6 in color_boards.values():
+                for color_board_v6 in color_boards:
                     # color_count
                     IOHelper.write_struct(io_head, 'i', len(color_board_v6))
-                    for color in color_board_v6.values():
+                    for color in color_board_v6:
                         # color
                         IOHelper.write_struct(io_head, '<4B', *color)
 
@@ -508,13 +526,15 @@ class IMG:
 
     @property
     def images(self):
-        if self._images is not None:
-            return list(range(len(self._images)))
+        images = self._images
+        if images is not None:
+            return list(range(len(images)))
 
     @property
     def dds_images(self):
-        if self._dds_images is not None:
-            return list(range(len(self._dds_images)))
+        dds_images = self._dds_images
+        if dds_images is not None:
+            return list(range(len(dds_images)))
 
     @property
     def version(self):

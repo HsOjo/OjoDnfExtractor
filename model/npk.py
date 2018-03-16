@@ -11,7 +11,7 @@ C_DECORD_FLAG = bytes('puchikon@neople dungeon and fighter %s\x00' % ('DNF' * 73
 class NPK:
     def __init__(self, io):
         self._io = io  # type: FileIO
-        self._files = None  # type: dict
+        self._files = []
 
         self._open()
 
@@ -25,21 +25,23 @@ class NPK:
 
         [count] = IOHelper.read_struct(io, 'i')
 
-        files = {}
+        files = []
         for i in range(count):
             offset, size = IOHelper.read_struct(io, '<2i')
             name = NPK._decrypt_name(io.read(256)).decode('ascii')
             name = name[:name.find('\x00')]
-            files[name] = {
+            file = {
+                'name': name,
                 'offset': offset,
                 'size': size,
                 'data': None,
             }
+            files.append(file)
 
         self._files = files
 
-    def load_file(self, name):
-        file = self._files[name]
+    def load_file(self, index):
+        file = self._files[index]
 
         if file['data'] is None:
             file['data'] = IOHelper.read_range(self._io, file['offset'], file['size'])
@@ -49,8 +51,8 @@ class NPK:
     def load_file_all(self):
         files = self._files
 
-        for name in files:
-            self.load_file(name)
+        for i in range(len(files)):
+            self.load_file(i)
 
         return files
 
@@ -75,14 +77,9 @@ class NPK:
             # magic(16) + count(4) + info(264 * n) + hash(32)
             offset = 52 + count * 264
 
-            for i, k in enumerate(files):
-                file = files[k]
-
-                file['offset'] = offset
-                file['size'] = len(file['data'])
-
+            for file in files:
                 IOHelper.write_struct(io_head, '<2i', file['offset'], file['size'])
-                name = NPK._decrypt_name(k.encode(encoding='ascii'))
+                name = NPK._decrypt_name(file['name'].encode(encoding='ascii'))
                 io_head.write(name)
 
                 offset += file['size']
@@ -93,14 +90,12 @@ class NPK:
         # write hash.
         io.write(hashlib.sha256(head_data[:len(head_data) // 17 * 17]).digest())
 
-        for i, k in enumerate(files):
-            file = files[k]
-
+        for file in files:
             io.seek(file['offset'])
             io.write(file['data'])
 
-    def info(self, name):
-        file = self._files[name]  # type: dict
+    def info(self, index):
+        file = self._files[index]  # type: dict
 
         info = {}
         for k, v in file.items():
@@ -122,8 +117,9 @@ class NPK:
 
     @property
     def files(self):
-        if self._files is not None:
-            return list(self._files.keys())
+        files = self._files
+        if files is not None:
+            return list(range(len(files)))
 
     def __del__(self):
         self._io.close()

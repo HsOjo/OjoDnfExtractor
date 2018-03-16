@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>OjoDnfExtractor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -32,27 +32,124 @@
      <height>22</height>
     </rect>
    </property>
-   <property name="defaultUp">
-    <bool>false</bool>
-   </property>
-   <property name="nativeMenuBar">
-    <bool>true</bool>
-   </property>
-   <widget class="QMenu" name="menu_app">
+   <widget class="QMenu" name="m_app">
     <property name="title">
      <string>文件</string>
     </property>
     <addaction name="a_open"/>
+    <addaction name="separator"/>
+    <addaction name="a_close"/>
    </widget>
-   <addaction name="menu_app"/>
+   <widget class="QMenu" name="m_npk">
+    <property name="title">
+     <string>NPK</string>
+    </property>
+    <widget class="QMenu" name="menuSound">
+     <property name="title">
+      <string>音效</string>
+     </property>
+     <addaction name="a_play"/>
+     <addaction name="a_pause"/>
+     <addaction name="a_stop"/>
+     <addaction name="separator"/>
+     <addaction name="a_loop"/>
+    </widget>
+    <addaction name="a_load_img"/>
+    <addaction name="separator"/>
+    <addaction name="a_insert_npk"/>
+    <addaction name="a_replace_npk"/>
+    <addaction name="a_remove_npk"/>
+    <addaction name="separator"/>
+    <addaction name="menuSound"/>
+   </widget>
+   <widget class="QMenu" name="m_img">
+    <property name="title">
+     <string>IMG</string>
+    </property>
+    <addaction name="a_insert_img"/>
+    <addaction name="a_replace_img"/>
+    <addaction name="a_remove_img"/>
+   </widget>
+   <addaction name="m_app"/>
+   <addaction name="m_npk"/>
+   <addaction name="m_img"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="a_open">
    <property name="text">
-    <string>打开</string>
+    <string>打开...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="a_close">
+   <property name="text">
+    <string>关闭</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="a_insert_img">
+   <property name="text">
+    <string>插入图像</string>
+   </property>
+  </action>
+  <action name="a_replace_img">
+   <property name="text">
+    <string>替换图像</string>
+   </property>
+  </action>
+  <action name="a_remove_img">
+   <property name="text">
+    <string>移除图像</string>
+   </property>
+  </action>
+  <action name="a_insert_npk">
+   <property name="text">
+    <string>插入文件</string>
+   </property>
+  </action>
+  <action name="a_replace_npk">
+   <property name="text">
+    <string>替换文件</string>
+   </property>
+  </action>
+  <action name="a_remove_npk">
+   <property name="text">
+    <string>移除文件</string>
+   </property>
+  </action>
+  <action name="a_play">
+   <property name="text">
+    <string>播放</string>
+   </property>
+  </action>
+  <action name="a_pause">
+   <property name="text">
+    <string>暂停</string>
+   </property>
+  </action>
+  <action name="a_stop">
+   <property name="text">
+    <string>停止</string>
+   </property>
+  </action>
+  <action name="a_loop">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>是否循环</string>
+   </property>
+  </action>
+  <action name="a_load_img">
+   <property name="text">
+    <string>加载IMG文件</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
  </widget>

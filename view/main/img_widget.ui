@@ -6,302 +6,260 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>940</width>
-    <height>622</height>
+    <width>874</width>
+    <height>551</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>IMG_Widget</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" rowstretch="1,2">
-   <item row="0" column="0">
-    <widget class="QTabWidget" name="tabWidget">
-     <property name="currentIndex">
-      <number>0</number>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <widget class="QWidget" name="tab">
-      <attribute name="title">
-       <string>图像列表</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_8">
-       <property name="leftMargin">
-        <number>12</number>
-       </property>
-       <property name="topMargin">
-        <number>12</number>
-       </property>
-       <property name="rightMargin">
-        <number>12</number>
-       </property>
-       <property name="bottomMargin">
-        <number>12</number>
-       </property>
-       <item row="0" column="0">
-        <widget class="QTableWidget" name="tw_images">
-         <property name="minimumSize">
-          <size>
-           <width>740</width>
-           <height>100</height>
-          </size>
+     <property name="title">
+      <string>色板列表</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0">
+       <widget class="QTableWidget" name="tw_color_boards">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <attribute name="horizontalHeaderDefaultSectionSize">
+         <number>80</number>
+        </attribute>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>索引</string>
          </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
+        </column>
+        <column>
+         <property name="text">
+          <string>颜色数量</string>
          </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
-         </property>
-         <attribute name="horizontalHeaderDefaultSectionSize">
-          <number>80</number>
-         </attribute>
-         <attribute name="verticalHeaderVisible">
-          <bool>false</bool>
-         </attribute>
-         <attribute name="verticalHeaderDefaultSectionSize">
-          <number>24</number>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>索引</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>图像格式</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>索引（链接）</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>扩展格式</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>宽度</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>高度</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>数据大小</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>画布宽度</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>画布高度</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>索引（dds）</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>左边</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>顶边</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>右边</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>底边</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>图像列表（dds）</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_7">
-       <property name="leftMargin">
-        <number>12</number>
-       </property>
-       <property name="rightMargin">
-        <number>12</number>
-       </property>
-       <property name="bottomMargin">
-        <number>12</number>
-       </property>
-       <item row="0" column="0">
-        <widget class="QTableWidget" name="tw_dds_images">
-         <property name="minimumSize">
-          <size>
-           <width>320</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
-         </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
-         </property>
-         <attribute name="horizontalHeaderDefaultSectionSize">
-          <number>80</number>
-         </attribute>
-         <attribute name="verticalHeaderDefaultSectionSize">
-          <number>24</number>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>索引</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>数据大小</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>原始大小</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>宽度</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>高度</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+        </column>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
-   <item row="1" column="0">
-    <layout class="QGridLayout" name="gridLayout_2" columnstretch="10,1">
-     <item row="0" column="0">
-      <widget class="QGroupBox" name="groupBox_4">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="title">
-        <string>显示区域</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="1">
-         <widget class="QScrollArea" name="scrollArea">
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>736</width>
-             <height>337</height>
-            </rect>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_5">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item row="0" column="0">
-             <widget class="QWidget" name="w_draw" native="true">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QGroupBox" name="groupBox_3">
-       <property name="title">
-        <string>色板列表</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <widget class="QTableWidget" name="tw_color_boards">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>100</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>80</number>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>索引</string>
-           </property>
-          </column>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-    </layout>
+   <item row="1" column="1">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>图像列表（dds）</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_7">
+      <item row="0" column="0">
+       <widget class="QTableWidget" name="tw_dds_images">
+        <property name="minimumSize">
+         <size>
+          <width>340</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <attribute name="horizontalHeaderDefaultSectionSize">
+         <number>80</number>
+        </attribute>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderDefaultSectionSize">
+         <number>24</number>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>索引</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>数据大小</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>原始大小</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>尺寸</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>IMG信息</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QTableWidget" name="tw_info">
+        <attribute name="horizontalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
+         <bool>true</bool>
+        </attribute>
+        <row>
+         <property name="text">
+          <string>版本</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>图像数量</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>图像数量（dds）</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>色板数量</string>
+         </property>
+        </row>
+        <column>
+         <property name="text">
+          <string>值</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="3">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>图像列表</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_6">
+      <item row="0" column="0">
+       <widget class="QTableWidget" name="tw_images">
+        <property name="minimumSize">
+         <size>
+          <width>820</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <attribute name="horizontalHeaderDefaultSectionSize">
+         <number>80</number>
+        </attribute>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderDefaultSectionSize">
+         <number>24</number>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>索引</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>图像格式</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>索引（链接）</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>扩展格式</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>坐标</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>尺寸</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>画布尺寸</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>数据大小</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>索引（dds）</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>边距</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>

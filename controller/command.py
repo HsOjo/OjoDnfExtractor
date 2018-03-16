@@ -15,17 +15,17 @@ class NPKTerminal(Terminal):
 
         self.bind_function('files', lambda: print(npk.files), {}, 'print file list.')
         self.bind_function('info', self.info, {
-            'index': {'type': str, 'null': True, 'help': 'file name in file list'},
+            'index': {'type': int, 'null': True, 'help': 'file index in file list'},
         }, 'print file info.')
-        self.bind_function('extract', lambda file, name: common.write_file(file, npk.load_file(name)), {
+        self.bind_function('extract', lambda file, index: common.write_file(file, npk.load_file(index)), {
             'file': {'type': str, 'help': 'save file path.'},
-            'name': {'type': str, 'help': 'file name in file list.'},
+            'index': {'type': int, 'help': 'file index in file list'},
         }, 'extract img file.')
         self.bind_function('open', self.open, {
             'type': {'type': str, 'help': 'open file type, img/ogg'},
             'file': {'type': str, 'help': 'file name in file list.'},
         }, 'open a file in file list.')
-        self.bind_function('load_all', npk.load_file_all(), {}, 'load all files.')
+        self.bind_function('load_all', npk.load_file_all, {}, 'load all files.')
         self.bind_function('extract_all', self.extract_all, {
             'dir': {'type': str, 'help': 'path of extract dir.'},
             'mode': {'type': str, 'null': True, 'help': 'mode with filename. choices: wodir(default), raw'},
@@ -36,9 +36,10 @@ class NPKTerminal(Terminal):
         npk.load_file_all()
         os.makedirs(path_dir, exist_ok=True)
         for i in npk.files:
-            [dirname, filename] = os.path.split(i)
+            info = npk.info(i)
+            [dirname, filename] = os.path.split(info['name'])
             data = npk.load_file(i)
-            print('writing: %s' % i)
+            print('writing: %s' % filename)
             os.makedirs(path_dir, exist_ok=True)
             if mode == 'raw':
                 dir_ = path_dir + '/%s' % dirname
@@ -61,10 +62,10 @@ class NPKTerminal(Terminal):
         else:
             raise Exception('Unsupport type_: %s' % type_)
 
-    def info(self, name=None):
+    def info(self, index=None):
         npk = self._npk
-        if name is not None:
-            print(npk.info(name))
+        if index is not None:
+            print(npk.info(index))
         else:
             for i in npk.files:
                 print(i, npk.info(i))

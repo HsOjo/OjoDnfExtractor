@@ -1,9 +1,10 @@
 import os
 from io import BytesIO
 
-from PyQt5.QtWidgets import QWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QWidget
 
 from model.npk import NPK
+from util import common
 from view.main.npk_widget import Ui_NPKWidget
 
 
@@ -24,18 +25,17 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         self._npk = NPK(io)
         self.refresh_files()
 
-        self.pb_load_img.clicked.connect(self._pb_load_img_clicked)
-
-    def _pb_load_img_clicked(self):
+    def load_current_img(self):
         ue = self._upper_event
         npk = self._npk
         tw = self.tw_files
         row = tw.currentRow()
-        path = tw.item(row, 1).text()
-        data = npk.load_file(path)
-        [dirname, filename] = os.path.split(path)
+        info = npk.info(row)
+        if info is not None:
+            data = npk.load_file(row)
+            [dirname, filename] = os.path.split(info['name'])
 
-        ue['open_file']('img', filename, data)
+            ue['open_file']('img', filename, data)
 
     def refresh_files(self):
         tw = self.tw_files
@@ -51,7 +51,8 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             for i in range(file_count - row_count):
                 tw.insertRow(0)
 
-        for i, v in enumerate(npk.files):
-            info = npk.info(v)
-            tw.setItem(i, 0, QTableWidgetItem(str(info['size'])))
-            tw.setItem(i, 1, QTableWidgetItem(v))
+        for i in npk.files:
+            info = npk.info(i)
+            tw.setItem(i, 0, common.qtwi_str(i))
+            tw.setItem(i, 1, common.qtwi_str(info['size']))
+            tw.setItem(i, 2, common.qtwi_str(info['name']))

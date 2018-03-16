@@ -2,6 +2,7 @@ from io import BytesIO
 
 from PIL import Image
 from PIL.DdsImagePlugin import DdsImageFile
+from PyQt5.QtWidgets import QTableWidgetItem
 
 from util.io_helper import IOHelper
 
@@ -82,3 +83,6 @@ def param_split(s):
         i += 1
 
     return lst
+
+
+qtwi_str = lambda text: QTableWidgetItem(str(text))
