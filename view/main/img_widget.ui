@@ -73,11 +73,11 @@
    <item row="1" column="1">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>(v5)图像列表（dds）</string>
+      <string>(v5)图像列表（map）</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
       <item row="0" column="0">
-       <widget class="QTableWidget" name="tw_dds_images">
+       <widget class="QTableWidget" name="tw_map_images">
         <property name="minimumSize">
          <size>
           <width>340</width>
@@ -161,7 +161,7 @@
         </row>
         <row>
          <property name="text">
-          <string>(v5)图像数量（dds）</string>
+          <string>(v5)图像数量（map）</string>
          </property>
         </row>
         <row>
@@ -253,12 +253,12 @@
         </column>
         <column>
          <property name="text">
-          <string>索引（dds）</string>
+          <string>索引（map）</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>边距</string>
+          <string>显示区域</string>
          </property>
         </column>
        </widget>

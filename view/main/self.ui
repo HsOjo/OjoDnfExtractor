@@ -32,11 +32,23 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="m_app">
+   <widget class="QMenu" name="m_main">
     <property name="title">
-     <string>文件</string>
+     <string>主菜单</string>
     </property>
+    <widget class="QMenu" name="m_extract_mode">
+     <property name="title">
+      <string>提取模式</string>
+     </property>
+     <addaction name="a_extract_mode_wodir"/>
+     <addaction name="a_extract_mode_raw"/>
+    </widget>
     <addaction name="a_open"/>
+    <addaction name="separator"/>
+    <addaction name="a_extract_dir"/>
+    <addaction name="m_extract_mode"/>
+    <addaction name="separator"/>
+    <addaction name="a_save"/>
     <addaction name="separator"/>
     <addaction name="a_close"/>
    </widget>
@@ -72,11 +84,14 @@
     <addaction name="a_extract_img"/>
     <addaction name="a_extract_all_img"/>
     <addaction name="separator"/>
+    <addaction name="a_extract_map"/>
+    <addaction name="a_extract_map_all"/>
+    <addaction name="separator"/>
     <addaction name="a_insert_img"/>
     <addaction name="a_replace_img"/>
     <addaction name="a_remove_img"/>
    </widget>
-   <addaction name="m_app"/>
+   <addaction name="m_main"/>
    <addaction name="m_npk"/>
    <addaction name="m_img"/>
   </widget>
@@ -197,6 +212,48 @@
    </property>
    <property name="shortcut">
     <string>Meta+Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="a_extract_dir">
+   <property name="text">
+    <string>设置提取目录</string>
+   </property>
+  </action>
+  <action name="a_save">
+   <property name="text">
+    <string>保存...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="a_extract_mode_raw">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>原始结构</string>
+   </property>
+  </action>
+  <action name="a_extract_mode_wodir">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>仅文件名</string>
+   </property>
+  </action>
+  <action name="a_extract_map">
+   <property name="text">
+    <string>提取图像（map）</string>
+   </property>
+  </action>
+  <action name="a_extract_map_all">
+   <property name="text">
+    <string>提取所有图像（map）</string>
    </property>
   </action>
  </widget>

@@ -67,6 +67,7 @@ class ScreenWindow(Ui_ScreenWindow, QMainWindow):
         texture['h'] = h
         texture['pixmap'] = pixmap
         self.w_canvas.update()
+        self.show()
 
     def _w_canvas_paint_event(self, qpe: QPaintEvent):
         painter = QPainter(self.w_canvas)

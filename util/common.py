@@ -14,21 +14,30 @@ def zfill_bytes(data, size):
     return data
 
 
-def dds_to_png(data):
+def dds_to_png(data, box=None, rotate=0):
     with BytesIO(data) as io_dds:
-        dds_file = DdsImageFile(io_dds)
+        map_image = DdsImageFile(io_dds)
+        if box is not None:
+            map_image = map_image.crop(box)
+
+        if rotate == 1:
+            map_image = map_image.transpose(Image.ROTATE_90)
+
         with BytesIO() as io_png:
-            dds_file.save(io_png, 'png')
+            map_image.save(io_png, 'png')
             data_png = IOHelper.read_range(io_png)
 
     return data_png
 
 
-def raw_to_png(data, w, h):
-    raw_img = Image.frombytes('RGBA', (w, h), data)
+def raw_to_png(data, w, h, rotate=0):
+    raw_image = Image.frombytes('RGBA', (w, h), data)
+
+    if rotate == 1:
+        raw_image = raw_image.transpose(Image.ROTATE_90)
 
     with BytesIO() as io_png:
-        raw_img.save(io_png, 'png')
+        raw_image.save(io_png, 'png')
         data_png = IOHelper.read_range(io_png)
 
     return data_png

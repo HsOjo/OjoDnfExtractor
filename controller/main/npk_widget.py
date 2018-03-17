@@ -63,11 +63,11 @@ class NPKWidget(Ui_NPKWidget, QWidget):
 
     def get_sound(self, index):
         npk = self._npk
-        sound_temp = self._sound_temp
 
         info = npk.info(index)
         key = (index, info['name'])
 
+        sound_temp = self._sound_temp
         sound = sound_temp.get(key)
         if sound is not None:
             return sound
@@ -78,3 +78,42 @@ class NPKWidget(Ui_NPKWidget, QWidget):
 
             sound_temp[key] = sound
             return sound
+
+    def get_current_info(self):
+        npk = self._npk
+        tw = self.tw_files
+        index = tw.currentRow()
+        info = npk.info(index)
+        return index, info
+
+    def play_current_sound(self, loop):
+        index, info = self.get_current_info()
+        if info is not None:
+            sound = self.get_sound(index)
+            sound.set_loop(loop)
+            sound.play()
+
+    def pause_current_sound(self):
+        index, info = self.get_current_info()
+        if info is not None:
+            sound = self.get_sound(index)
+            sound.pause()
+
+    def stop_current_sound(self):
+        index, info = self.get_current_info()
+        if info is not None:
+            sound = self.get_sound(index)
+            sound.stop()
+
+    def extract_current_file(self):
+        ue = self._upper_event
+        npk = self._npk
+        index, info = self.get_current_info()
+
+        extract_dir = ue['get_extract_dir']()
+        if extract_dir is not None:
+            [dirname, filename] = os.path.split(info['name'])
+
+            data = npk.load_file(index)
+            with open('%s/%s' % (extract_dir, filename), 'bw') as io:
+                io.write(data)

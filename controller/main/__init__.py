@@ -12,11 +12,16 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         super().__init__()
         self.setupUi(self)
 
+        self._extract_dir = None
+        self._extract_mode = None
+
         self._upper_event = upper_event
         self._event = {
             'set_texture': upper_event['set_texture'],
             'set_canvas': upper_event['set_canvas'],
             'open_file': self.open_file,
+            'get_extract_dir': self.get_extract_dir,
+            'get_extract_mode': lambda: self._extract_mode,
         }
 
         self.tab_widgets = []
@@ -28,7 +33,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.a_sound_play.triggered.connect(self._a_sound_play_triggered)
         self.a_sound_pause.triggered.connect(self._a_sound_pause_triggered)
         self.a_sound_stop.triggered.connect(self._a_sound_stop_triggered)
-        self.a_sound_loop.triggered.connect(self._a_sound_loop_triggered)
+        self.a_extract_dir.triggered.connect(lambda: self.set_extract_dir())
+        self.a_extract_npk.triggered.connect(self._a_extract_npk_triggered)
         self.tw_content.currentChanged.connect(self._tw_content_current_changed)
 
     def add_tab_widget(self, name, widget):
@@ -42,8 +48,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             self.add_tab_widget(name, IMGWidget(path, self._event))
 
     def _a_open_triggered(self):
-        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='Open File', directory='./',
-                                                   filter='NPK Files(*.npk);;IMG Files(*.img);;All Files(*)')
+        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='打开文件', directory='./',
+                                                   filter='NPK 文件(*.npk);;IMG 文件(*.img);;所有文件(*)')
         if os.path.exists(path):
             [dir, file] = os.path.split(path)
             if file[-4:].lower() == '.npk':
@@ -72,19 +78,30 @@ class MainWindow(Ui_MainWindow, QMainWindow):
     def _a_sound_play_triggered(self):
         cw = self.current_widget
         if isinstance(cw, NPKWidget):
-            cw.get_sound(cw.tw_files.currentRow()).play()
+            cw.play_current_sound(self.a_sound_loop.isChecked())
 
     def _a_sound_pause_triggered(self):
         cw = self.current_widget
         if isinstance(cw, NPKWidget):
-            cw.get_sound(cw.tw_files.currentRow()).pause()
+            cw.pause_current_sound()
 
     def _a_sound_stop_triggered(self):
         cw = self.current_widget
         if isinstance(cw, NPKWidget):
-            cw.get_sound(cw.tw_files.currentRow()).stop()
+            cw.stop_current_sound()
 
-    def _a_sound_loop_triggered(self):
+    def _a_extract_npk_triggered(self):
         cw = self.current_widget
         if isinstance(cw, NPKWidget):
-            cw.get_sound(cw.tw_files.currentRow()).set_loop(self.a_sound_loop.isChecked())
+            cw.extract_current_file()
+
+    def set_extract_dir(self):
+        dirname = QFileDialog.getExistingDirectory(parent=self, caption='选择提取目录', directory='./')
+        if dirname != '':
+            self._extract_dir = dirname
+
+    def get_extract_dir(self):
+        if self._extract_dir is None:
+            self.set_extract_dir()
+
+        return self._extract_dir

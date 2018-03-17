@@ -35,7 +35,7 @@ PIX_SIZE = {
 
 IMAGE_EXTRA_NONE = 5
 IMAGE_EXTRA_ZLIB = 6
-IMAGE_EXTRA_DDS_ZLIB = 7
+IMAGE_EXTRA_MAP_ZLIB = 7
 
 IMAGE_FORMAT_TEXT = {
     IMAGE_FORMAT_1555: '1555',
@@ -50,7 +50,7 @@ IMAGE_FORMAT_TEXT = {
 IMAGE_EXTRA_TEXT = {
     IMAGE_EXTRA_NONE: 'none',
     IMAGE_EXTRA_ZLIB: 'zlib',
-    IMAGE_EXTRA_DDS_ZLIB: 'dds_zlib',
+    IMAGE_EXTRA_MAP_ZLIB: 'map_zlib',
 }
 
 
@@ -58,7 +58,7 @@ class IMG:
     def __init__(self, io):
         self._io = io  # type: FileIO
         self._images = []
-        self._dds_images = []
+        self._map_images = []
         self._version = 0
         self._color_board = []
         self._color_boards = []
@@ -96,15 +96,15 @@ class IMG:
                 # temp
                 image['data'] = None
 
-                if extra == IMAGE_EXTRA_DDS_ZLIB:
-                    keep_1, dds_index, lx, ly, rx, ry, keep_2 = IOHelper.read_struct(io, '<7i')
+                if extra == IMAGE_EXTRA_MAP_ZLIB:
+                    keep_1, map_index, lx, ly, rx, ry, rotate = IOHelper.read_struct(io, '<7i')
                     image['keep_1'] = keep_1
-                    image['dds_index'] = dds_index
+                    image['map_index'] = map_index
                     image['left'] = lx
                     image['top'] = ly
                     image['right'] = rx
                     image['bottom'] = ry
-                    image['keep_2'] = keep_2
+                    image['rotate'] = rotate
 
                 if self._version == FILE_VERSION_1:
                     image['offset'] = io.tell()
@@ -126,13 +126,13 @@ class IMG:
 
         return colors
 
-    def _open_dds_images(self, dds_count):
+    def _open_map_images(self, map_count):
         io = self._io
 
-        dds_images = []
-        for i in range(dds_count):
+        map_images = []
+        for i in range(map_count):
             keep, fmt, index, data_size, raw_size, w, h = IOHelper.read_struct(io, '<7i')
-            dds_image = {
+            map_image = {
                 'keep': keep,
                 'format': fmt,
                 'index': index,
@@ -142,9 +142,9 @@ class IMG:
                 'h': h,
                 'data': None,
             }
-            dds_images.append(dds_image)
+            map_images.append(map_image)
 
-        return dds_images
+        return map_images
 
     def _open(self):
         io = self._io
@@ -153,7 +153,7 @@ class IMG:
         magic = IOHelper.read_ascii_string(io, 18)
         if magic == FILE_MAGIC or magic == FILE_MAGIC_OLD:
             if magic == FILE_MAGIC:
-                # images_size without version,count,extra(color_board,dds_images)...
+                # images_size without version,count,extra(color_board,map_images)...
                 [images_size] = IOHelper.read_struct(io, 'i')
             else:
                 # unknown.
@@ -167,10 +167,10 @@ class IMG:
                 # single color board.
                 self._color_board = self._open_color_board()
             elif version == FILE_VERSION_5:
-                # dds image.
-                dds_count, file_size = IOHelper.read_struct(io, '<2i')
+                # map image.
+                map_count, file_size = IOHelper.read_struct(io, '<2i')
                 self._color_board = self._open_color_board()
-                self._dds_images = self._open_dds_images(dds_count)
+                self._map_images = self._open_map_images(map_count)
             elif version == FILE_VERSION_6:
                 # multiple color board.
                 color_boards = []
@@ -190,56 +190,59 @@ class IMG:
                 # behind header.
                 offset = io.tell()
                 if version == FILE_VERSION_5:
-                    dds_images = self._dds_images
-                    for i in range(len(dds_images)):
-                        dds_image = dds_images[i]
-                        dds_image['offset'] = offset
-                        offset += dds_image['data_size']
+                    map_images = self._map_images
+                    for i in range(len(map_images)):
+                        map_image = map_images[i]
+                        map_image['offset'] = offset
+                        offset += map_image['data_size']
                 for i in range(len(images)):
                     image = images[i]
-                    if image['format'] != IMAGE_FORMAT_LINK and image['extra'] != IMAGE_EXTRA_DDS_ZLIB:
+                    if image['format'] != IMAGE_FORMAT_LINK and image['extra'] != IMAGE_EXTRA_MAP_ZLIB:
                         image['offset'] = offset
                         offset += image['size']
         else:
             raise Exception('Not NPK File.')
 
-    def load_image(self, index):
+    def load_image_map(self, index):
         io = self._io
-        image = self._images[index]
-        dds_image = None  # type: dict
+        map_image = self._map_images[index]
 
-        if image['format'] == IMAGE_FORMAT_LINK:
-            return self.load_image(image['link'])
+        if map_image['data'] is not None:
+            return map_image['data']
 
-        if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
-            dds_image = self._dds_images[image['dds_index']]
-            if dds_image['data'] is not None:
-                return dds_image['data']
-
-            data = IOHelper.read_range(io, dds_image['offset'], dds_image['data_size'])
-        else:
-            if image['data'] is not None:
-                return image['data']
-
-            data = IOHelper.read_range(io, image['offset'], image['size'])
-
-        if image['extra'] == IMAGE_EXTRA_ZLIB or image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
-            data = zlib.decompress(data)
-        elif image['extra'] != IMAGE_EXTRA_NONE:
-            raise Exception('Unknown Zip Type.', image['extra'])
-
-        if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
-            dds_image['data'] = data
-        else:
-            image['data'] = data
+        data = IOHelper.read_range(io, map_image['offset'], map_image['data_size'])
+        data = zlib.decompress(data)
+        map_image['data'] = data
 
         return data
 
-    def load_image_all(self):
+    def load_image(self, index):
+        io = self._io
+        image = self._images[index]
+
+        if image['data'] is not None:
+            return image['data']
+
+        data = IOHelper.read_range(io, image['offset'], image['size'])
+
+        if image['extra'] == IMAGE_EXTRA_ZLIB:
+            data = zlib.decompress(data)
+        elif image['extra'] != IMAGE_EXTRA_NONE:
+            raise Exception('Unknown Extra Type.', image['extra'])
+
+        image['data'] = data
+
+        return data
+
+    def load_all(self):
         images = self._images
+        map_images = self._map_images
 
         for i in range(len(images)):
             self.load_image(i)
+
+        for i in range(len(map_images)):
+            self.load_image_map(i)
 
         return images
 
@@ -256,14 +259,14 @@ class IMG:
             else:
                 # extra, w, h, size, x, y, mw, mh
                 size += 32
-                if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
-                    # keep_1, dds_index, left, top, right, bottom, keep_2
+                if image['extra'] == IMAGE_EXTRA_MAP_ZLIB:
+                    # keep_1, map_index, left, top, right, bottom, rotate
                     size += 28
 
         return size
 
     def _save_count_file_size(self, images_size, images_data):
-        dds_images = self._dds_images
+        map_images = self._map_images
         color_board = self._color_board
         color_boards = self._color_boards
         version = self._version
@@ -282,10 +285,10 @@ class IMG:
         is_ver5 = version == FILE_VERSION_5
 
         if is_ver5:
-            # dds_count, img_size
+            # map_count, img_size
             size += 8
             # keep, format, index, data_size, raw_size, w, h
-            size += len(dds_images) * 28
+            size += len(map_images) * 28
 
         if version == FILE_VERSION_4 or is_ver5:
             # color count.
@@ -310,22 +313,22 @@ class IMG:
         return size
 
     def save(self, io=None):
-        images = self.load_image_all()
+        images = self.load_all()
         color_board = self._color_board
         color_boards = self._color_boards
-        dds_images = self._dds_images
+        map_images = self._map_images
         version = self._version
 
         images_data = []
 
         # compress data, get size, add to data_list.
         if version == FILE_VERSION_5:
-            for i in sorted(dds_images):
-                dds_image = dds_images[i]
-                data = dds_image['data']
-                dds_image['raw_size'] = len(data)
+            for i in sorted(map_images):
+                map_image = map_images[i]
+                data = map_image['data']
+                map_image['raw_size'] = len(data)
                 data = zlib.compress(data)
-                dds_image['data_size'] = len(data)
+                map_image['data_size'] = len(data)
 
                 images_data.append(data)
         else:
@@ -333,7 +336,7 @@ class IMG:
                 image = images[i]
                 if image['format'] != IMAGE_FORMAT_LINK:
                     data = image['data']
-                    if image['extra'] == IMAGE_EXTRA_ZLIB or image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
+                    if image['extra'] == IMAGE_EXTRA_ZLIB or image['extra'] == IMAGE_EXTRA_MAP_ZLIB:
                         data = zlib.compress(data)
                     image['size'] = len(data)
 
@@ -364,8 +367,8 @@ class IMG:
             is_ver5 = version == FILE_VERSION_5
 
             if is_ver5:
-                # dds_count, file_size
-                IOHelper.write_struct(io_head, '<2i', len(dds_images), file_size)
+                # map_count, file_size
+                IOHelper.write_struct(io_head, '<2i', len(map_images), file_size)
 
             if version == FILE_VERSION_4 or is_ver5:
                 # color_count
@@ -375,9 +378,9 @@ class IMG:
                     IOHelper.write_struct(io_head, '<4B', *color)
 
             if is_ver5:
-                for dds_image in dds_images:
-                    IOHelper.write_struct(io_head, '<7i', dds_image['keep'], dds_image['format'], dds_image['index'],
-                                          dds_image['data_size'], dds_image['raw_size'], dds_image['w'], dds_image['h'])
+                for map_image in map_images:
+                    IOHelper.write_struct(io_head, '<7i', map_image['keep'], map_image['format'], map_image['index'],
+                                          map_image['data_size'], map_image['raw_size'], map_image['w'], map_image['h'])
 
             if version == FILE_VERSION_6:
                 # color_board count.
@@ -399,10 +402,10 @@ class IMG:
                     # extra, w, h, size, x, y, mw, mh
                     IOHelper.write_struct(io_head, '<8i', image['extra'], image['w'], image['h'], image['size'],
                                           image['x'], image['y'], image['mw'], image['mh'])
-                    if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
-                        # keep_1, dds_index, left, top, right, bottom, keep_2
-                        IOHelper.write_struct(io_head, '<7i', image['keep_1'], image['dds_index'], image['left'],
-                                              image['top'], image['right'], image['bottom'], image['keep_2'])
+                    if image['extra'] == IMAGE_EXTRA_MAP_ZLIB:
+                        # keep_1, map_index, left, top, right, bottom, rotate
+                        IOHelper.write_struct(io_head, '<7i', image['keep_1'], image['map_index'], image['left'],
+                                              image['top'], image['right'], image['bottom'], image['rotate'])
 
             head_data = IOHelper.read_range(io_head)
 
@@ -411,31 +414,46 @@ class IMG:
         for data in images_data:
             io.write(data)
 
-    def build(self, index, color_board_index=0):
-        data = self.load_image(index)
-        image = self._images[index]
-        version = self._version
+    def build_map(self, index, box=None, rotate=0):
+        map_image = self._map_images[index]
 
-        if version == FILE_VERSION_1 or version == FILE_VERSION_2:
-            data = IMG._nximg_to_raw(data, image['format'])
-        elif version == FILE_VERSION_4:
-            data = IMG._indexes_to_raw(data, self._color_board)
-        elif version == FILE_VERSION_5:
-            if image['extra'] == IMAGE_EXTRA_DDS_ZLIB and (image['format'] in IMAGE_FORMATS_DDS):
-                data = common.dds_to_png(data)
-            else:
-                data = IMG._nximg_to_raw(data, image['format'])
-        elif version == FILE_VERSION_6:
-            data = IMG._indexes_to_raw(data, self._color_boards[color_board_index])
+        data = self.load_image_map(index)
+        if map_image['format'] in IMAGE_FORMATS_DDS:
+            data = common.dds_to_png(data, box, rotate)
         else:
-            raise Exception('Unknown IMG Version.', version)
-
-        if image['format'] in IMAGE_FORMATS_RAW:
-            if image['extra'] == IMAGE_EXTRA_DDS_ZLIB:
-                dds_image = self._dds_images[image['dds_index']]
-                data = common.raw_to_png(data, dds_image['w'], dds_image['h'])
+            data = IMG._nximg_to_raw(data, map_image['format'], map_image['w'], box)
+            if box is not None:
+                [l, t, r, b] = box
+                w, h = r - l, b - t
             else:
-                data = common.raw_to_png(data, image['w'], image['h'])
+                w, h = map_image['w'], map_image['h']
+            data = common.raw_to_png(data, w, h, rotate)
+
+        return data
+
+    def build(self, index, color_board_index=0):
+        image = self._images[index]
+
+        if image['format'] == IMAGE_FORMAT_LINK:
+            return self.build(image['link'], color_board_index)
+
+        if image['extra'] == IMAGE_EXTRA_MAP_ZLIB:
+            l, t, r, b = image['left'], image['top'], image['right'], image['bottom']
+            data = self.build_map(image['map_index'], (l, t, r, b), image['rotate'])
+        else:
+            data = self.load_image(index)
+            version = self._version
+
+            if version == FILE_VERSION_1 or version == FILE_VERSION_2 or version == FILE_VERSION_5:
+                data = IMG._nximg_to_raw(data, image['format'])
+            elif version == FILE_VERSION_4:
+                data = IMG._indexes_to_raw(data, self._color_board)
+            elif version == FILE_VERSION_6:
+                data = IMG._indexes_to_raw(data, self._color_boards[color_board_index])
+            else:
+                raise Exception('Unknown IMG Version.', version)
+
+            data = common.raw_to_png(data, image['w'], image['h'])
 
         return data
 
@@ -449,8 +467,8 @@ class IMG:
 
         return info
 
-    def info_dds(self, index):
-        image = self._dds_images[index]  # type: dict
+    def info_map(self, index):
+        image = self._map_images[index]  # type: dict
 
         info = {}
         for k, v in image.items():
@@ -473,42 +491,82 @@ class IMG:
         return data_raw
 
     @staticmethod
-    def _nximg_to_raw(data, image_format):
+    def _nximg_to_raw(data, image_format, w=None, box=None):
         data_raw = bytes()
+        ps = PIX_SIZE[image_format]
 
         with BytesIO(data) as io_nximg:
             with BytesIO() as io_raw:
                 if image_format == IMAGE_FORMAT_1555:
-                    temp = IOHelper.read_struct(io_nximg, '<h', False)
-                    while temp is not None:
-                        [color] = temp
-                        b = (color & 31) << 3
-                        g = (color & 992) >> 2
-                        r = (color & 31744) >> 7
-                        a = (color & 32768)
+                    def count_rgba(v):
+                        b = (v & 31) << 3
+                        g = (v & 992) >> 2
+                        r = (v & 31744) >> 7
+                        a = (v & 32768)
                         if a != 0:
                             a = 255
-                        IOHelper.write_struct(io_raw, '<4B', r, g, b, a)
+                        return r, g, b, a
 
+                    if box is not None and w is not None:
+                        [left, top, right, bottom] = box
+                        for y in range(top, bottom):
+                            o = y * w * ps
+                            for x in range(left, right):
+                                io_nximg.seek(o + x * ps)
+                                temp = IOHelper.read_struct(io_nximg, '<h', False)
+                                if temp is not None:
+                                    [v] = temp
+                                    IOHelper.write_struct(io_raw, '<4B', *count_rgba(v))
+                    else:
                         temp = IOHelper.read_struct(io_nximg, '<h', False)
+                        while temp is not None:
+                            [v] = temp
+                            IOHelper.write_struct(io_raw, '<4B', *count_rgba(v))
+
+                            temp = IOHelper.read_struct(io_nximg, '<h', False)
                 elif image_format == IMAGE_FORMAT_4444:
-                    temp = IOHelper.read_struct(io_nximg, '<2B', False)
-                    while temp is not None:
-                        [b1, b2] = temp
-                        b = (b1 & 15) << 4
-                        g = b1 & 240
-                        r = (b2 & 15) << 4
-                        a = b2 & 240
-                        IOHelper.write_struct(io_raw, '<4B', r, g, b, a)
+                    def count_rgba(v1, v2):
+                        b = (v1 & 15) << 4
+                        g = v1 & 240
+                        r = (v2 & 15) << 4
+                        a = v2 & 240
+                        return r, g, b, a
 
+                    if box is not None and w is not None:
+                        [left, top, right, bottom] = box
+                        for y in range(top, bottom):
+                            o = y * w * ps
+                            for x in range(left, right):
+                                io_nximg.seek(o + x * ps)
+                                temp = IOHelper.read_struct(io_nximg, '<2B', False)
+                                if temp is not None:
+                                    [v1, v2] = temp
+                                    IOHelper.write_struct(io_raw, '<4B', *count_rgba(v1, v2))
+                    else:
                         temp = IOHelper.read_struct(io_nximg, '<2B', False)
-                elif image_format == IMAGE_FORMAT_8888:
-                    temp = IOHelper.read_struct(io_nximg, '<4B', False)
-                    while temp is not None:
-                        [b, g, r, a] = temp
-                        IOHelper.write_struct(io_raw, '<4B', r, g, b, a)
+                        while temp is not None:
+                            [v1, v2] = temp
+                            IOHelper.write_struct(io_raw, '<4B', *count_rgba(v1, v2))
 
+                            temp = IOHelper.read_struct(io_nximg, '<2B', False)
+                elif image_format == IMAGE_FORMAT_8888:
+                    if box is not None and w is not None:
+                        [left, top, right, bottom] = box
+                        for y in range(top, bottom):
+                            o = y * w * ps
+                            for x in range(left, right):
+                                io_nximg.seek(o + x * ps)
+                                temp = IOHelper.read_struct(io_nximg, '<4B', False)
+                                if temp is not None:
+                                    [b, g, r, a] = temp
+                                    IOHelper.write_struct(io_raw, '<4B', r, g, b, a)
+                    else:
                         temp = IOHelper.read_struct(io_nximg, '<4B', False)
+                        while temp is not None:
+                            [b, g, r, a] = temp
+                            IOHelper.write_struct(io_raw, '<4B', r, g, b, a)
+
+                            temp = IOHelper.read_struct(io_nximg, '<4B', False)
                 else:
                     raise Exception('Unsupport Image Format.', image_format)
 
@@ -531,10 +589,10 @@ class IMG:
             return list(range(len(images)))
 
     @property
-    def dds_images(self):
-        dds_images = self._dds_images
-        if dds_images is not None:
-            return list(range(len(dds_images)))
+    def map_images(self):
+        map_images = self._map_images
+        if map_images is not None:
+            return list(range(len(map_images)))
 
     @property
     def version(self):
