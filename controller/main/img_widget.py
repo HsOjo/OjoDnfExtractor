@@ -1,5 +1,6 @@
 from io import BytesIO
 
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QWidget
 
 from model.img import IMG, IMAGE_FORMAT_LINK, IMAGE_EXTRA_DDS_ZLIB, IMAGE_FORMAT_TEXT, IMAGE_EXTRA_TEXT
@@ -22,6 +23,10 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             raise Exception('Unsupport value type.')
 
         self._img = IMG(io)
+        self._pixmap_temp = {}
+
+        self.tw_images.currentItemChanged.connect(self._tw_images_current_item_changed)
+
         self.refresh_images()
         self.refresh_dds_images()
         self.refresh_info()
@@ -85,7 +90,44 @@ class IMGWidget(Ui_IMGWidget, QWidget):
         tw = self.tw_info
         img = self._img
 
-        tw.setItem(0, 0, common.qtwi_str(img.version))
+        tw.setItem(0, 0, common.qtwi_str('v%s' % img.version))
         tw.setItem(1, 0, common.qtwi_str(len(img.images)))
-        tw.setItem(2, 0, common.qtwi_str(len(img.dds_images)))
-        tw.setItem(3, 0, common.qtwi_str(len(img.color_boards)))
+        tw.setItem(2, 0, common.qtwi_str(len(img.color_board)))
+        tw.setItem(3, 0, common.qtwi_str(len(img.dds_images)))
+        tw.setItem(4, 0, common.qtwi_str(len(img.color_boards)))
+
+    def get_pixmap(self, index, color_board_index):
+        img = self._img
+        pixmap_temp = self._pixmap_temp
+
+        key = (index, color_board_index)
+        pixmap = pixmap_temp.get(key)
+        if pixmap is not None:
+            return pixmap
+        else:
+            data = img.build(index, color_board_index)
+
+            pixmap = QPixmap()
+            pixmap.loadFromData(data)
+
+            pixmap_temp[key] = pixmap
+            return pixmap
+
+    def _tw_images_current_item_changed(self, new, old):
+        if new is not None:
+            ue = self._upper_event
+            img = self._img
+
+            index = new.row()
+            color_board_index = self.tw_color_boards.currentRow()
+            pixmap = self.get_pixmap(index, color_board_index)
+
+            info = img.info(index)
+            if info['extra'] == IMAGE_EXTRA_DDS_ZLIB:
+                dds_info = img.info_dds(info['dds_index'])
+                l, t, r, b = info['left'], info['top'], info['right'], info['bottom']
+                ue['set_canvas'](l + r + dds_info['w'], t + b + dds_info['h'])
+                ue['set_texture'](l + info['x'], t + info['y'], dds_info['w'], dds_info['h'], pixmap)
+            else:
+                ue['set_canvas'](info['mw'], info['mh'])
+                ue['set_texture'](info['x'], info['y'], info['w'], info['h'], pixmap)

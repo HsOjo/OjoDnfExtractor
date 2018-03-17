@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>641</width>
-    <height>441</height>
+    <width>960</width>
+    <height>626</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ScreenWindow</string>
+   <string>屏幕窗口</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -29,10 +29,19 @@
     </property>
     <item row="0" column="0">
      <widget class="QScrollArea" name="scrollArea">
-      <property name="widgetResizable">
+      <property name="minimumSize">
+       <size>
+        <width>804</width>
+        <height>604</height>
+       </size>
+      </property>
+      <property name="autoFillBackground">
        <bool>true</bool>
       </property>
-      <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
+      </property>
+      <widget class="QWidget" name="w_canvas">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -41,29 +50,129 @@
          <height>439</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QWidget" name="w_screen" native="true"/>
-        </item>
-       </layout>
       </widget>
      </widget>
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>960</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="m_main">
+    <property name="title">
+     <string>主菜单</string>
+    </property>
+    <widget class="QMenu" name="m_rect">
+     <property name="title">
+      <string>矩形</string>
+     </property>
+     <addaction name="a_rect_draw"/>
+     <addaction name="a_rect_color"/>
+    </widget>
+    <widget class="QMenu" name="m_blend">
+     <property name="title">
+      <string>混合模式</string>
+     </property>
+     <addaction name="a_blend_normal"/>
+     <addaction name="a_blend_plus"/>
+    </widget>
+    <addaction name="m_blend"/>
+    <addaction name="m_rect"/>
+    <addaction name="a_bg_color"/>
+    <addaction name="separator"/>
+    <addaction name="a_close"/>
+   </widget>
+   <addaction name="m_main"/>
+  </widget>
+  <action name="a_close">
+   <property name="text">
+    <string>关闭</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="a_rect">
+   <property name="text">
+    <string>图像矩形</string>
+   </property>
+  </action>
+  <action name="a_blend">
+   <property name="text">
+    <string>混合模式</string>
+   </property>
+  </action>
+  <action name="a_rect_draw">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>是否显示</string>
+   </property>
+  </action>
+  <action name="a_rect_color">
+   <property name="text">
+    <string>设置颜色</string>
+   </property>
+  </action>
+  <action name="a_blend_normal">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>普通</string>
+   </property>
+  </action>
+  <action name="actionBlend_add">
+   <property name="text">
+    <string>blend_add</string>
+   </property>
+  </action>
+  <action name="actionBlend_plus">
+   <property name="text">
+    <string>blend_plus</string>
+   </property>
+  </action>
+  <action name="a_blend_plus">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>颜色加</string>
+   </property>
+  </action>
+  <action name="a_bg_color">
+   <property name="text">
+    <string>设置背景色</string>
+   </property>
+  </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>a_close</sender>
+   <signal>triggered()</signal>
+   <receiver>ScreenWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>479</x>
+     <y>312</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>960</width>
     <height>600</height>
    </rect>
   </property>
@@ -28,7 +28,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>960</width>
      <height>22</height>
     </rect>
    </property>
@@ -44,28 +44,34 @@
     <property name="title">
      <string>NPK</string>
     </property>
-    <widget class="QMenu" name="menuSound">
+    <widget class="QMenu" name="m_sound">
      <property name="title">
       <string>音效</string>
      </property>
-     <addaction name="a_play"/>
-     <addaction name="a_pause"/>
-     <addaction name="a_stop"/>
+     <addaction name="a_sound_play"/>
+     <addaction name="a_sound_pause"/>
+     <addaction name="a_sound_stop"/>
      <addaction name="separator"/>
-     <addaction name="a_loop"/>
+     <addaction name="a_sound_loop"/>
     </widget>
     <addaction name="a_load_img"/>
+    <addaction name="separator"/>
+    <addaction name="a_extract_npk"/>
+    <addaction name="a_extract_all_npk"/>
     <addaction name="separator"/>
     <addaction name="a_insert_npk"/>
     <addaction name="a_replace_npk"/>
     <addaction name="a_remove_npk"/>
     <addaction name="separator"/>
-    <addaction name="menuSound"/>
+    <addaction name="m_sound"/>
    </widget>
    <widget class="QMenu" name="m_img">
     <property name="title">
      <string>IMG</string>
     </property>
+    <addaction name="a_extract_img"/>
+    <addaction name="a_extract_all_img"/>
+    <addaction name="separator"/>
     <addaction name="a_insert_img"/>
     <addaction name="a_replace_img"/>
     <addaction name="a_remove_img"/>
@@ -121,22 +127,31 @@
     <string>移除文件</string>
    </property>
   </action>
-  <action name="a_play">
+  <action name="a_sound_play">
    <property name="text">
     <string>播放</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
   </action>
-  <action name="a_pause">
+  <action name="a_sound_pause">
    <property name="text">
     <string>暂停</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
   </action>
-  <action name="a_stop">
+  <action name="a_sound_stop">
    <property name="text">
     <string>停止</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
   </action>
-  <action name="a_loop">
+  <action name="a_sound_loop">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -150,6 +165,38 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="a_extract_npk">
+   <property name="text">
+    <string>提取文件</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+S</string>
+   </property>
+  </action>
+  <action name="a_extract_img">
+   <property name="text">
+    <string>提取图像</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="a_extract_all_npk">
+   <property name="text">
+    <string>提取所有文件</string>
+   </property>
+   <property name="shortcut">
+    <string>Meta+Ctrl+Alt+S</string>
+   </property>
+  </action>
+  <action name="a_extract_all_img">
+   <property name="text">
+    <string>提取所有图像</string>
+   </property>
+   <property name="shortcut">
+    <string>Meta+Ctrl+Shift+S</string>
    </property>
   </action>
  </widget>

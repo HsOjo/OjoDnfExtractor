@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>874</width>
-    <height>551</height>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>色板列表</string>
+      <string>(v6)调色板列表</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="0">
@@ -73,7 +73,7 @@
    <item row="1" column="1">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>图像列表（dds）</string>
+      <string>(v5)图像列表（dds）</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
       <item row="0" column="0">
@@ -156,12 +156,17 @@
         </row>
         <row>
          <property name="text">
-          <string>图像数量（dds）</string>
+          <string>(v4)颜色数量</string>
          </property>
         </row>
         <row>
          <property name="text">
-          <string>色板数量</string>
+          <string>(v5)图像数量（dds）</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>(v6)调色板数量</string>
          </property>
         </row>
         <column>

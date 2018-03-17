@@ -1,7 +1,8 @@
-import argparse,sys
+import argparse
 
 from controller.command import Command
 from controller.gui import GUI
+from lib.bass import Bass
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-m', '--mode', default='gui', choices=['gui', 'cmd'], help='the program run mode, default is gui.')
@@ -15,4 +16,7 @@ elif args.mode == 'gui':
 else:
     raise Exception('Unknown mode.')
 
-exit(controller.start())
+Bass.init()
+code = controller.start()
+Bass.free()
+exit(code)

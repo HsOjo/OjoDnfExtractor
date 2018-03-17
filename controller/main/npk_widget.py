@@ -3,6 +3,7 @@ from io import BytesIO
 
 from PyQt5.QtWidgets import QWidget
 
+from lib.bass import Bass
 from model.npk import NPK
 from util import common
 from view.main.npk_widget import Ui_NPKWidget
@@ -23,6 +24,9 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             raise Exception('Unsupport value type.')
 
         self._npk = NPK(io)
+        self._sound = None
+        self._sound_temp = {}
+
         self.refresh_files()
 
     def load_current_img(self):
@@ -56,3 +60,21 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             tw.setItem(i, 0, common.qtwi_str(i))
             tw.setItem(i, 1, common.qtwi_str(info['size']))
             tw.setItem(i, 2, common.qtwi_str(info['name']))
+
+    def get_sound(self, index):
+        npk = self._npk
+        sound_temp = self._sound_temp
+
+        info = npk.info(index)
+        key = (index, info['name'])
+
+        sound = sound_temp.get(key)
+        if sound is not None:
+            return sound
+        else:
+            data = npk.load_file(index)
+
+            sound = Bass(data)
+
+            sound_temp[key] = sound
+            return sound

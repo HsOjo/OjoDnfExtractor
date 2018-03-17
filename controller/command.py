@@ -165,11 +165,9 @@ class Command:
             'type': {'type': str, 'help': 'open file type, img/npk'},
             'file': {'type': str, 'help': 'open file path'},
         }, 'open a file.')
-        Bass.init()
 
     def start(self):
         self._term.start()
-        Bass.free()
         return 0
 
     def open(self, type, file):
