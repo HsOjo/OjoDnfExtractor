@@ -1,9 +1,9 @@
 import sys
 
 from PyQt5.QtWidgets import QApplication
+from .main import MainWindow
 
-from controller.main import MainWindow
-from controller.screen import ScreenWindow
+from controller.gui.screen import ScreenWindow
 
 
 class GUI:
