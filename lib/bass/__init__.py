@@ -136,13 +136,3 @@ class Bass:
     def sectopos(self, sec):
         res = BASS_ChannelSeconds2Bytes(self._stream, sec)  # type:int
         return res
-
-
-if __name__ == '__main__':
-    from time import sleep
-
-    Bass.init()
-    b = Bass('/Users/Hs/Projects/DNF_EX_Hs/output/sounds_char_creator/cr_ancient.ogg')
-    b.set_speed(1.5)
-    b.play()
-    sleep(2)
