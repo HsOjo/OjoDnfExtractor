@@ -244,8 +244,6 @@ class IMG:
         for i in range(len(map_images)):
             self.load_image_map(i)
 
-        return images
-
     def _save_count_images_size(self):
         images = self._images
         size = 0
@@ -313,7 +311,8 @@ class IMG:
         return size
 
     def save(self, io=None):
-        images = self.load_all()
+        self.load_all()
+        images = self._images
         color_board = self._color_board
         color_boards = self._color_boards
         map_images = self._map_images
@@ -458,24 +457,51 @@ class IMG:
         return data
 
     def info(self, index):
-        image = self._images[index]  # type: dict
+        images = self._images
+        image = images[index]  # type: dict
 
         info = {}
-        for k, v in image.items():
-            if k != 'data' and 'keep' not in k:
-                info[k] = v
+        if image['format'] == IMAGE_FORMAT_LINK:
+            info.update(images[image['link']])
+
+        info.update(image)
+        info.pop('data', None)
 
         return info
+
+    def set_info(self, index, key, value):
+        image = self._images[index]  # type: dict
+        image[key] = value
+
+    def remove_image(self, index):
+        self._images.pop(index)
+
+    def replace_image(self, index, data):
+        # TODO: replace image
+        pass
+
+    def insert_image(self, index, data):
+        # TODO: insert image.
+        pass
 
     def info_map(self, index):
-        image = self._map_images[index]  # type: dict
+        map_image = self._map_images[index]  # type: dict
 
-        info = {}
-        for k, v in image.items():
-            if k != 'data' and 'keep' not in k:
-                info[k] = v
+        info = map_image.copy()
+        info.pop('data', None)
 
         return info
+
+    def remove_map_image(self, index):
+        self._map_images.pop(index)
+
+    def replace_map_image(self, index, data):
+        # TODO: replace map image
+        pass
+
+    def insert_map_image(self, index, data):
+        # TODO: insert map image.
+        pass
 
     @staticmethod
     def _indexes_to_raw(data, color_board):

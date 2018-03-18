@@ -23,7 +23,7 @@ class NPKTerminal(Terminal):
             'type': {'type': str, 'help': 'open file type, img/ogg'},
             'file': {'type': str, 'help': 'file name in file list.'},
         }, 'open a file in file list.')
-        self.bind_function('load_all', npk.load_file_all, {}, 'load all files.')
+        self.bind_function('load_all', npk.load_all, {}, 'load all files.')
         self.bind_function('extract', lambda file, index: common.write_file(file, npk.load_file(index)), {
             'file': {'type': str, 'help': 'save file path.'},
             'index': {'type': int, 'help': 'file index in file list'},
@@ -35,7 +35,7 @@ class NPKTerminal(Terminal):
 
     def extract_all(self, extract_dir, mode='wodir'):
         npk = self._npk
-        npk.load_file_all()
+        npk.load_all()
         os.makedirs(extract_dir, exist_ok=True)
         for i in npk.files:
             info = npk.info(i)

@@ -33,11 +33,18 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.current_widget = None
 
         self.a_open.triggered.connect(self._a_open_triggered)
+        self.a_save.triggered.connect(self._a_save_triggered)
         self.a_close.triggered.connect(self._a_close_triggered)
         self.a_load_img.triggered.connect(self._a_load_img_triggered)
         self.a_sound_play.triggered.connect(self._a_sound_play_triggered)
         self.a_sound_pause.triggered.connect(self._a_sound_pause_triggered)
         self.a_sound_stop.triggered.connect(self._a_sound_stop_triggered)
+        self.a_insert_npk.triggered.connect(self._a_insert_npk_triggered)
+        self.a_replace_npk.triggered.connect(self._a_replace_npk_triggered)
+        self.a_remove_npk.triggered.connect(self._a_remove_npk_triggered)
+        self.a_insert_img.triggered.connect(self._a_insert_img_triggered)
+        self.a_replace_img.triggered.connect(self._a_replace_img_triggered)
+        self.a_remove_img.triggered.connect(self._a_remove_img_triggered)
         self.a_extract_dir.triggered.connect(lambda: self.set_extract_dir())
         self.a_extract_npk.triggered.connect(self._a_extract_npk_triggered)
         self.a_extract_all_npk.triggered.connect(self._a_extract_all_npk_triggered)
@@ -131,6 +138,43 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         cw = self.current_widget
         if isinstance(cw, IMGWidget):
             cw.extract_all_map_image()
+
+    def _a_save_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, NPKWidget):
+            cw.save_npk()
+        elif isinstance(cw, IMGWidget):
+            cw.save_img()
+
+    def _a_insert_npk_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, NPKWidget):
+            cw.insert_file()
+
+    def _a_replace_npk_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, NPKWidget):
+            cw.replace_file()
+
+    def _a_remove_npk_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, NPKWidget):
+            cw.remove_file()
+
+    def _a_insert_img_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, IMGWidget):
+            cw.insert_image()
+
+    def _a_replace_img_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, IMGWidget):
+            cw.replace_image()
+
+    def _a_remove_img_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, IMGWidget):
+            cw.remove_image()
 
     def set_extract_dir(self):
         dirname = QFileDialog.getExistingDirectory(parent=self, caption='选择提取目录', directory='./')

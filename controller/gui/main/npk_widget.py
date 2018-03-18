@@ -1,7 +1,8 @@
 import os
+import traceback
 from io import BytesIO
 
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QFileDialog, QTableWidgetItem
 
 from lib.bass import Bass
 from model.npk import NPK
@@ -26,8 +27,23 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         self._npk = NPK(io)
         self._sound = None
         self._sound_temp = {}
+        self._changing = False
+
+        self.tw_files.cellChanged.connect(self._tw_files_cell_changed)
 
         self.refresh_files()
+
+    def _tw_files_cell_changed(self, row, col):
+        if not self._changing:
+            tw = self.tw_files
+            npk = self._npk
+            index = row
+            item = tw.item(row, col)  # type: QTableWidgetItem
+            try:
+                if col == 2:
+                    npk.set_info(index, 'name', item.text())
+            except Exception as e:
+                traceback.print_exc()
 
     def load_current_img(self):
         ue = self._upper_event
@@ -41,6 +57,7 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             ue['open_file']('img', filename, data)
 
     def refresh_files(self):
+        self._changing = True
         tw = self.tw_files
         npk = self._npk
 
@@ -59,6 +76,7 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             tw.setItem(i, 0, common.qtwi_str(i))
             tw.setItem(i, 1, common.qtwi_str(info['size']))
             tw.setItem(i, 2, common.qtwi_str(info['name']))
+        self._changing = False
 
     def get_sound(self, index):
         npk = self._npk
@@ -144,3 +162,42 @@ class NPKWidget(Ui_NPKWidget, QWidget):
                 common.write_file(path, data)
             else:
                 break
+
+    def insert_file(self):
+        npk = self._npk
+        index = self.tw_files.currentRow()
+
+        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='插入文件', directory='./',
+                                                   filter='IMG 文件(*.img);;OGG 文件(*.ogg);;所有文件(*)')
+        if os.path.exists(path):
+            [dirname, filename] = os.path.split(path)
+            data = common.read_file(path)
+            npk.insert_file(index, filename, data)
+        self.refresh_files()
+
+    def replace_file(self):
+        npk = self._npk
+        index = self.tw_files.currentRow()
+
+        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='替换文件', directory='./',
+                                                   filter='IMG 文件(*.img);;OGG 文件(*.ogg);;所有文件(*)')
+        if os.path.exists(path):
+            [dirname, filename] = os.path.split(path)
+            data = common.read_file(path)
+            npk.replace_file(index, data)
+        self.refresh_files()
+
+    def remove_file(self):
+        npk = self._npk
+        index = self.tw_files.currentRow()
+
+        npk.remove_file(index)
+        self.refresh_files()
+
+    def save_npk(self):
+        [path, type] = QFileDialog.getSaveFileName(parent=self, caption='保存NPK文件', directory='./',
+                                                   filter='NPK 文件(*.npk);;所有文件(*)')
+        npk = self._npk
+        npk.load_all()
+        with open(path, 'bw') as io:
+            npk.save(io)

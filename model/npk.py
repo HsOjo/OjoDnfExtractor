@@ -48,17 +48,16 @@ class NPK:
 
         return file['data']
 
-    def load_file_all(self):
+    def load_all(self):
         files = self._files
 
         for i in range(len(files)):
             self.load_file(i)
 
-        return files
-
     def save(self, io=None):
-        # load_file file data.
-        files = self.load_file_all()
+        # load all file data.
+        self.load_all()
+        files = self._files
 
         if io is None:
             io = self._io
@@ -103,6 +102,28 @@ class NPK:
                 info[k] = v
 
         return info
+
+    def set_info(self, index, key, value):
+        file = self._files[index]  # type: dict
+        file[key] = value
+
+    def remove_file(self, index):
+        self._files.pop(index)
+
+    def replace_file(self, index, data):
+        file = self._files[index]  # type: dict
+        file['data'] = data
+        file['size'] = len(data)
+        file['offset'] = None
+
+    def insert_file(self, index, name, data):
+        file = {
+            'name': name,
+            'offset': None,
+            'size': len(data),
+            'data': data,
+        }
+        self._files.insert(index, file)
 
     @staticmethod
     def _decrypt_name(data):

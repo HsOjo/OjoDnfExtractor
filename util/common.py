@@ -48,6 +48,12 @@ def write_file(path, data):
         io.write(data)
 
 
+def read_file(path):
+    with open(path, 'br') as io:
+        data = io.read()
+    return data
+
+
 # by musoucrow.
 def param_split(s):
     lst = []
@@ -94,4 +100,5 @@ def param_split(s):
     return lst
 
 
-qtwi_str = lambda text: QTableWidgetItem(str(text))
+def qtwi_str(text=''):
+    return QTableWidgetItem(str(text))
