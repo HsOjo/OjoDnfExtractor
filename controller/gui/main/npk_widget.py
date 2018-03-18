@@ -32,11 +32,10 @@ class NPKWidget(Ui_NPKWidget, QWidget):
     def load_current_img(self):
         ue = self._upper_event
         npk = self._npk
-        tw = self.tw_files
-        row = tw.currentRow()
-        info = npk.info(row)
+        index = self.tw_files.currentRow()
+        info = npk.info(index)
         if info is not None:
-            data = npk.load_file(row)
+            data = npk.load_file(index)
             [dirname, filename] = os.path.split(info['name'])
 
             ue['open_file']('img', filename, data)
@@ -80,20 +79,23 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             return sound
 
     def play_current_sound(self, loop):
-        index, info = self.get_current_info()
+        index = self.tw_files.currentRow()
+        info = self._npk.info(index)
         if info is not None:
             sound = self.get_sound(index)
             sound.set_loop(loop)
             sound.play()
 
     def pause_current_sound(self):
-        index, info = self.get_current_info()
+        index = self.tw_files.currentRow()
+        info = self._npk.info(index)
         if info is not None:
             sound = self.get_sound(index)
             sound.pause()
 
     def stop_current_sound(self):
-        index, info = self.get_current_info()
+        index = self.tw_files.currentRow()
+        info = self._npk.info(index)
         if info is not None:
             sound = self.get_sound(index)
             sound.stop()
