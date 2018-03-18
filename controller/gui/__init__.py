@@ -18,8 +18,6 @@ class GUI:
         }
 
         self.main = MainWindow(self._event)
-        self.main.open_file('img', 'test', './data/test.img')
-        self.main.open_file('npk', 'sprite_interface2_cs_shop', './data/sprite_interface2_cs_shop.NPK')
 
     def start(self):
         self.screen.show()
