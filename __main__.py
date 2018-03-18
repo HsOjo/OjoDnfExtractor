@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 from controller.command import Command
 from controller.gui import GUI
@@ -19,4 +20,4 @@ else:
 Bass.init()
 code = controller.start()
 Bass.free()
-exit(code)
+sys.exit(code)

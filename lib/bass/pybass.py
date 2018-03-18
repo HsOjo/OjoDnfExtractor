@@ -68,7 +68,10 @@ n_dict = {
     'linux': 'libbass.so',
 }
 
-bass_path = './lib/bass/' + n_dict.get(plat, n_dict['linux'])
+if '_MEIPASS' in dir(sys):
+    bass_path = '%s/lib/bass/%s' % (sys._MEIPASS, n_dict.get(plat, n_dict['linux']))
+else:
+    bass_path = './lib/bass/%s' % n_dict.get(plat, n_dict['linux'])
 
 if bass_path == '':
     raise Exception("Couldn't find bass.")
