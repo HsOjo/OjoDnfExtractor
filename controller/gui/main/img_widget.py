@@ -259,26 +259,26 @@ class IMGWidget(Ui_IMGWidget, QWidget):
 
     def insert_image(self):
         img = self._img
-        index = self.tw_files.currentRow()
+        index = self.tw_images.currentRow()
 
         [path, type] = QFileDialog.getOpenFileName(parent=self, caption='插入图像', directory='./',
                                                    filter='PNG 文件(*.png);;所有文件(*)')
         if os.path.exists(path):
             data = common.read_file(path)
             img.insert_image(index, data)
-        self.refresh_files()
+        self.refresh_images()
         self.refresh_info()
 
     def replace_image(self):
         img = self._img
-        index = self.tw_files.currentRow()
+        index = self.tw_images.currentRow()
 
         [path, type] = QFileDialog.getOpenFileName(parent=self, caption='替换图像', directory='./',
                                                    filter='PNG 文件(*.png);;所有文件(*)')
         if os.path.exists(path):
             data = common.read_file(path)
             img.replace_image(index, data)
-        self.refresh_files()
+        self.refresh_images()
 
     def remove_image(self):
         img = self._img
@@ -290,26 +290,26 @@ class IMGWidget(Ui_IMGWidget, QWidget):
 
     def insert_map_image(self):
         img = self._img
-        index = self.tw_files.currentRow()
+        index = self.tw_images.currentRow()
 
         [path, type] = QFileDialog.getOpenFileName(parent=self, caption='插入图像（map）', directory='./',
                                                    filter='PNG 文件(*.png);;所有文件(*)')
         if os.path.exists(path):
             data = common.read_file(path)
             img.insert_map_image(index, data)
-        self.refresh_files()
+        self.refresh_images()
         self.refresh_info()
 
     def replace_map_image(self):
         img = self._img
-        index = self.tw_files.currentRow()
+        index = self.tw_images.currentRow()
 
         [path, type] = QFileDialog.getOpenFileName(parent=self, caption='替换图像（map）', directory='./',
                                                    filter='PNG 文件(*.png);;所有文件(*)')
         if os.path.exists(path):
             data = common.read_file(path)
             img.replace_map_image(index, data)
-        self.refresh_files()
+        self.refresh_images()
 
     def remove_map_image(self):
         img = self._img
