@@ -42,13 +42,14 @@ class ScreenWindow(Ui_ScreenWindow, QMainWindow):
         blend_bind = self._blend_bind
         self._blend = blend_mode
 
-        for menu, blend in blend_bind.items():
-            menu.setChecked(blend == blend_mode)
+        for menu, value in blend_bind.items():
+            menu.setChecked(value == blend_mode)
 
         self.w_canvas.update()
 
     def set_canvas(self, w, h):
-        self.w_canvas.resize(w, h)
+        # draw rect need +1px
+        self.w_canvas.resize(w + 1, h + 1)
         self.w_canvas.update()
 
     def set_rect(self, color: QColor = None, draw=True):

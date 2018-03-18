@@ -44,11 +44,12 @@ class NPKTerminal(Terminal):
             if mode == 'raw':
                 dir_ = path_dir + '/%s' % dirname
                 os.makedirs(dir_, exist_ok=True)
-                with open('%s/%s' % (dir_, filename), 'bw') as io:
-                    io.write(data)
+                path = '%s/%s' % (dir_, filename)
             elif mode == 'wodir':
-                with open('%s/%s' % (path_dir, filename), 'bw') as io:
-                    io.write(data)
+                path = '%s/%s' % (path_dir, filename)
+            else:
+                raise Exception('Unsupport mode: %s' % mode)
+            common.write_file(path, data)
 
     def open(self, type_, file):
         npk = self._npk
@@ -109,8 +110,8 @@ class IMGTerminal(Terminal):
         for i in img.images:
             print('writing: %s' % i)
             data = img.build(i, color_board_index)
-            with open('%s/%s.png' % (path_dir, i), 'bw') as io:
-                io.write(data)
+            path = '%s/%s.png' % (path_dir, i)
+            common.write_file(path, data)
 
     def info(self, index=None):
         img = self._img

@@ -85,7 +85,7 @@
     <addaction name="a_extract_all_img"/>
     <addaction name="separator"/>
     <addaction name="a_extract_map"/>
-    <addaction name="a_extract_map_all"/>
+    <addaction name="a_extract_all_map"/>
     <addaction name="separator"/>
     <addaction name="a_insert_img"/>
     <addaction name="a_replace_img"/>
@@ -251,7 +251,7 @@
     <string>提取图像（map）</string>
    </property>
   </action>
-  <action name="a_extract_map_all">
+  <action name="a_extract_all_map">
    <property name="text">
     <string>提取所有图像（map）</string>
    </property>

@@ -13,7 +13,12 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.setupUi(self)
 
         self._extract_dir = None
-        self._extract_mode = None
+        self._extract_mode = 'wodir'
+
+        self._extract_mode_bind = {
+            self.a_extract_mode_raw: 'raw',
+            self.a_extract_mode_wodir: 'wodir',
+        }
 
         self._upper_event = upper_event
         self._event = {
@@ -35,6 +40,13 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.a_sound_stop.triggered.connect(self._a_sound_stop_triggered)
         self.a_extract_dir.triggered.connect(lambda: self.set_extract_dir())
         self.a_extract_npk.triggered.connect(self._a_extract_npk_triggered)
+        self.a_extract_all_npk.triggered.connect(self._a_extract_all_npk_triggered)
+        self.a_extract_img.triggered.connect(self._a_extract_img_triggered)
+        self.a_extract_all_img.triggered.connect(self._a_extract_all_img_triggered)
+        self.a_extract_map.triggered.connect(self._a_extract_map_triggered)
+        self.a_extract_all_map.triggered.connect(self._a_extract_all_map_triggered)
+        self.a_extract_mode_raw.triggered.connect(lambda: self.set_extract_mode('raw'))
+        self.a_extract_mode_wodir.triggered.connect(lambda: self.set_extract_mode('wodir'))
         self.tw_content.currentChanged.connect(self._tw_content_current_changed)
 
     def add_tab_widget(self, name, widget):
@@ -95,6 +107,31 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         if isinstance(cw, NPKWidget):
             cw.extract_current_file()
 
+    def _a_extract_all_npk_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, NPKWidget):
+            cw.extract_all_file()
+
+    def _a_extract_img_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, IMGWidget):
+            cw.extract_current_image()
+
+    def _a_extract_all_img_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, IMGWidget):
+            cw.extract_all_image()
+
+    def _a_extract_map_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, IMGWidget):
+            cw.extract_current_map_image()
+
+    def _a_extract_all_map_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, IMGWidget):
+            cw.extract_all_map_image()
+
     def set_extract_dir(self):
         dirname = QFileDialog.getExistingDirectory(parent=self, caption='选择提取目录', directory='./')
         if dirname != '':
@@ -105,3 +142,10 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             self.set_extract_dir()
 
         return self._extract_dir
+
+    def set_extract_mode(self, extract_mode):
+        extract_mode_bind = self._extract_mode_bind
+        self._extract_mode = extract_mode
+
+        for menu, value in extract_mode_bind.items():
+            menu.setChecked(value == extract_mode)

@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 
 from PyQt5.QtGui import QPixmap
@@ -143,3 +144,74 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             info = img.info_map(index)
             ue['set_canvas'](info['w'], info['h'])
             ue['set_texture'](0, 0, info['w'], info['h'], pixmap)
+
+    def extract_gen_path(self, index, data_type):
+        ue = self._upper_event
+
+        extract_dir = ue['get_extract_dir']()
+        extract_mode = ue['get_extract_mode']()
+
+        if extract_dir is not None:
+            if extract_mode == 'raw':
+                path = '%s/%s.png' % (extract_dir, index)
+            elif extract_mode == 'wodir':
+                dirname = '%s/%s' % (extract_dir, data_type)
+                os.makedirs(dirname, exist_ok=True)
+                path = '%s/%s.png' % (dirname, index)
+            else:
+                raise Exception('Unsupport mode: %s' % extract_mode)
+
+            return path
+
+    def extract_current_image(self):
+        img = self._img
+        index = self.tw_images.currentRow()
+        color_board_index = self.tw_color_boards.currentRow()
+
+        if index >= 0:
+            if color_board_index < 0:
+                path = self.extract_gen_path(index, 'image')
+            else:
+                path = self.extract_gen_path(index, 'image_color_%s' % color_board_index)
+
+            if path is not None:
+                data = img.build(index, color_board_index)
+                common.write_file(path, data)
+
+    def extract_all_image(self):
+        img = self._img
+        color_board_index = self.tw_color_boards.currentRow()
+
+        for index in img.images:
+            if color_board_index < 0:
+                path = self.extract_gen_path(index, 'image')
+            else:
+                path = self.extract_gen_path(index, 'image_color_%s' % color_board_index)
+
+            if path is not None:
+                data = img.build(index, color_board_index)
+                common.write_file(path, data)
+            else:
+                break
+
+    def extract_current_map_image(self):
+        img = self._img
+        index = self.tw_map_images.currentRow()
+
+        if index >= 0:
+            path = self.extract_gen_path(index, 'map_image')
+            if path is not None:
+                data = img.build_map(index)
+                common.write_file(path, data)
+
+    def extract_all_map_image(self):
+        img = self._img
+
+        for index in img.map_images:
+            path = self.extract_gen_path(index, 'map_image')
+
+            if path is not None:
+                data = img.build_map(index)
+                common.write_file(path, data)
+            else:
+                break

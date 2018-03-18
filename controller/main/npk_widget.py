@@ -79,13 +79,6 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             sound_temp[key] = sound
             return sound
 
-    def get_current_info(self):
-        npk = self._npk
-        tw = self.tw_files
-        index = tw.currentRow()
-        info = npk.info(index)
-        return index, info
-
     def play_current_sound(self, loop):
         index, info = self.get_current_info()
         if info is not None:
@@ -105,15 +98,47 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             sound = self.get_sound(index)
             sound.stop()
 
-    def extract_current_file(self):
+    def extract_gen_path(self, index):
         ue = self._upper_event
         npk = self._npk
-        index, info = self.get_current_info()
 
         extract_dir = ue['get_extract_dir']()
+        extract_mode = ue['get_extract_mode']()
+
         if extract_dir is not None:
+            info = npk.info(index)
             [dirname, filename] = os.path.split(info['name'])
 
-            data = npk.load_file(index)
-            with open('%s/%s' % (extract_dir, filename), 'bw') as io:
-                io.write(data)
+            if extract_mode == 'raw':
+                dir_ = extract_dir + '/%s' % dirname
+                os.makedirs(dir_, exist_ok=True)
+                path = '%s/%s' % (dir_, filename)
+            elif extract_mode == 'wodir':
+                path = '%s/%s' % (extract_dir, filename)
+            else:
+                raise Exception('Unsupport mode: %s' % extract_mode)
+
+            return path
+
+    def extract_current_file(self):
+        npk = self._npk
+
+        index = self.tw_files.currentRow()
+
+        if index >= 0:
+            path = self.extract_gen_path(index)
+
+            if path is not None:
+                data = npk.load_file(index)
+                common.write_file(path, data)
+
+    def extract_all_file(self):
+        npk = self._npk
+
+        for index in npk.files:
+            path = self.extract_gen_path(index)
+            if path is not None:
+                data = npk.load_file(index)
+                common.write_file(path, data)
+            else:
+                break
