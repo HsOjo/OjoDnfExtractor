@@ -13,6 +13,7 @@ class GUI:
     def __init__(self, args):
         self.args = args
         self.qt = QApplication(sys.argv)
+        sys.excepthook = GUI.print_exception
 
         self.screen = ScreenWindow()
         self._event = {
@@ -23,15 +24,14 @@ class GUI:
         self.main = MainWindow(self._event)
 
     def start(self):
-        try:
-            self.screen.show()
-            self.main.show()
-            code = self.qt.exec_()
-        except:
-            with StringIO() as io:
-                traceback.print_exc(file=io)
-                err_str = IOHelper.read_range(io)
-            QMessageBox.information(None, None, err_str)
-            code = 1
-
+        self.screen.show()
+        self.main.show()
+        code = self.qt.exec_()
         return code
+
+    @staticmethod
+    def print_exception(type, value, tb):
+        with StringIO() as io:
+            traceback.print_exception(type, value, tb, file=io)
+            err_str = IOHelper.read_range(io)
+        QMessageBox.information(None, None, err_str)

@@ -201,7 +201,7 @@ class IMG:
                         image['offset'] = offset
                         offset += image['size']
         else:
-            raise Exception('Not NPK File.')
+            raise Exception('Not IMG File.')
 
     def load_image_map(self, index):
         io = self._io
