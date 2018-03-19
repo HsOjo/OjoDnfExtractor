@@ -65,6 +65,7 @@
      <addaction name="a_sound_stop"/>
      <addaction name="separator"/>
      <addaction name="a_sound_loop"/>
+     <addaction name="a_sound_single"/>
     </widget>
     <addaction name="a_load_img"/>
     <addaction name="separator"/>
@@ -254,6 +255,17 @@
   <action name="a_extract_all_map">
    <property name="text">
     <string>提取所有图像（map）</string>
+   </property>
+  </action>
+  <action name="a_sound_single">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>单实例播放</string>
    </property>
   </action>
  </widget>

@@ -96,26 +96,27 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             sound_temp[key] = sound
             return sound
 
-    def play_current_sound(self, loop):
+    def get_current_sound(self):
         index = self.tw_files.currentRow()
         info = self._npk.info(index)
         if info is not None:
-            sound = self.get_sound(index)
+            sound = self.get_sound(index)  # type: Bass
+            return sound
+
+    def play_current_sound(self, loop):
+        sound = self.get_current_sound()
+        if sound is not None:
             sound.set_loop(loop)
             sound.play()
 
     def pause_current_sound(self):
-        index = self.tw_files.currentRow()
-        info = self._npk.info(index)
-        if info is not None:
-            sound = self.get_sound(index)
+        sound = self.get_current_sound()
+        if sound is not None:
             sound.pause()
 
     def stop_current_sound(self):
-        index = self.tw_files.currentRow()
-        info = self._npk.info(index)
-        if info is not None:
-            sound = self.get_sound(index)
+        sound = self.get_current_sound()
+        if sound is not None:
             sound.stop()
 
     def extract_gen_path(self, index):

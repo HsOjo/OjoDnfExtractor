@@ -20,6 +20,9 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             self.a_extract_mode_wodir: 'wodir',
         }
 
+        self._sound_single = True
+        self._sound_last = None
+
         self._upper_event = upper_event
         self._event = {
             'set_texture': upper_event['set_texture'],
@@ -39,6 +42,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.a_sound_play.triggered.connect(self._a_sound_play_triggered)
         self.a_sound_pause.triggered.connect(self._a_sound_pause_triggered)
         self.a_sound_stop.triggered.connect(self._a_sound_stop_triggered)
+        self.a_sound_single.triggered.connect(self._a_sound_single_triggered)
         self.a_insert_npk.triggered.connect(self._a_insert_npk_triggered)
         self.a_replace_npk.triggered.connect(self._a_replace_npk_triggered)
         self.a_remove_npk.triggered.connect(self._a_remove_npk_triggered)
@@ -55,6 +59,11 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.a_extract_mode_raw.triggered.connect(lambda: self.set_extract_mode('raw'))
         self.a_extract_mode_wodir.triggered.connect(lambda: self.set_extract_mode('wodir'))
         self.tw_content.currentChanged.connect(self._tw_content_current_changed)
+
+        self.a_insert_img.setEnabled(False)
+        self.a_insert_img.setText('%s（未完成）' % self.a_insert_img.text())
+        self.a_replace_img.setEnabled(False)
+        self.a_replace_img.setText('%s（未完成）' % self.a_replace_img.text())
 
     def add_tab_widget(self, name, widget):
         self.tab_widgets.append(widget)
@@ -97,6 +106,10 @@ class MainWindow(Ui_MainWindow, QMainWindow):
     def _a_sound_play_triggered(self):
         cw = self.current_widget
         if isinstance(cw, NPKWidget):
+            if self._sound_single:
+                if self._sound_last is not None:
+                    self._sound_last.stop()
+                self._sound_last = cw.get_current_sound()
             cw.play_current_sound(self.a_sound_loop.isChecked())
 
     def _a_sound_pause_triggered(self):
@@ -108,6 +121,9 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         cw = self.current_widget
         if isinstance(cw, NPKWidget):
             cw.stop_current_sound()
+
+    def _a_sound_single_triggered(self):
+        self._sound_single = self.a_sound_single.isChecked()
 
     def _a_extract_npk_triggered(self):
         cw = self.current_widget
