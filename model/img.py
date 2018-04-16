@@ -1,8 +1,11 @@
 import zlib
 from io import FileIO, BytesIO, SEEK_CUR
 
+from PIL.PngImagePlugin import PngImageFile
+
 from util import common
 from util.io_helper import IOHelper
+from .nx_color import NXColor
 
 FILE_MAGIC_OLD = 'Neople Image File'
 FILE_MAGIC = 'Neople Img File'
@@ -476,13 +479,35 @@ class IMG:
     def remove_image(self, index):
         self._images.pop(index)
 
-    def replace_image(self, index, data):
-        # TODO: replace image
-        pass
+    def replace_image(self, index, data, image_format=IMAGE_FORMAT_8888):
+        self.remove_image(index)
+        self.insert_image(index, data, image_format)
 
-    def insert_image(self, index, data):
-        # TODO: insert image.
-        pass
+    def insert_image(self, index, data, image_format=IMAGE_FORMAT_8888):
+        version = self._version
+        images = self._images
+
+        image = {
+            'format': image_format,
+            'extra': IMAGE_EXTRA_NONE,
+            'x': 0,
+            'y': 0,
+            'mw': 800,
+            'mh': 600,
+        }
+
+        if version == FILE_VERSION_1 or version == FILE_VERSION_2:
+            image['data'], image['w'], image['h'] = IMG._png_to_nximg(data, image_format)
+            image['size'] = len(image['data'])
+            if image['w'] > image['mw']:
+                image['mw'] = image['w']
+            if image['h'] > image['mh']:
+                image['mh'] = image['h']
+            if index == -1:
+                index = len(images)
+            images.insert(index, image)
+        else:
+            raise Exception('Unsupport file version: ver%s' % version)
 
     def info_map(self, index):
         map_image = self._map_images[index]  # type: dict
@@ -496,12 +521,12 @@ class IMG:
         self._map_images.pop(index)
 
     def replace_map_image(self, index, data):
-        # TODO: replace map image
-        pass
+        self.remove_map_image(index)
+        self.insert_map_image(index, data)
 
     def insert_map_image(self, index, data):
         # TODO: insert map image.
-        pass
+        raise Exception('TODO: insert map image.')
 
     @staticmethod
     def _indexes_to_raw(data, color_board):
@@ -524,40 +549,6 @@ class IMG:
         with BytesIO(data) as io_nximg:
             with BytesIO() as io_raw:
                 if image_format == IMAGE_FORMAT_1555:
-                    def count_rgba(v):
-                        b = (v & 31) << 3
-                        g = (v & 992) >> 2
-                        r = (v & 31744) >> 7
-                        a = (v & 32768)
-                        if a != 0:
-                            a = 255
-                        return r, g, b, a
-
-                    if box is not None and w is not None:
-                        [left, top, right, bottom] = box
-                        for y in range(top, bottom):
-                            o = y * w * ps
-                            for x in range(left, right):
-                                io_nximg.seek(o + x * ps)
-                                temp = IOHelper.read_struct(io_nximg, '<h', False)
-                                if temp is not None:
-                                    [v] = temp
-                                    IOHelper.write_struct(io_raw, '<4B', *count_rgba(v))
-                    else:
-                        temp = IOHelper.read_struct(io_nximg, '<h', False)
-                        while temp is not None:
-                            [v] = temp
-                            IOHelper.write_struct(io_raw, '<4B', *count_rgba(v))
-
-                            temp = IOHelper.read_struct(io_nximg, '<h', False)
-                elif image_format == IMAGE_FORMAT_4444:
-                    def count_rgba(v1, v2):
-                        b = (v1 & 15) << 4
-                        g = v1 & 240
-                        r = (v2 & 15) << 4
-                        a = v2 & 240
-                        return r, g, b, a
-
                     if box is not None and w is not None:
                         [left, top, right, bottom] = box
                         for y in range(top, bottom):
@@ -567,12 +558,30 @@ class IMG:
                                 temp = IOHelper.read_struct(io_nximg, '<2B', False)
                                 if temp is not None:
                                     [v1, v2] = temp
-                                    IOHelper.write_struct(io_raw, '<4B', *count_rgba(v1, v2))
+                                    IOHelper.write_struct(io_raw, '<4B', *NXColor.from_1555(v1, v2))
                     else:
                         temp = IOHelper.read_struct(io_nximg, '<2B', False)
                         while temp is not None:
                             [v1, v2] = temp
-                            IOHelper.write_struct(io_raw, '<4B', *count_rgba(v1, v2))
+                            IOHelper.write_struct(io_raw, '<4B', *NXColor.from_1555(v1, v2))
+
+                            temp = IOHelper.read_struct(io_nximg, '<2B', False)
+                elif image_format == IMAGE_FORMAT_4444:
+                    if box is not None and w is not None:
+                        [left, top, right, bottom] = box
+                        for y in range(top, bottom):
+                            o = y * w * ps
+                            for x in range(left, right):
+                                io_nximg.seek(o + x * ps)
+                                temp = IOHelper.read_struct(io_nximg, '<2B', False)
+                                if temp is not None:
+                                    [v1, v2] = temp
+                                    IOHelper.write_struct(io_raw, '<4B', *NXColor.from_4444(v1, v2))
+                    else:
+                        temp = IOHelper.read_struct(io_nximg, '<2B', False)
+                        while temp is not None:
+                            [v1, v2] = temp
+                            IOHelper.write_struct(io_raw, '<4B', *NXColor.from_4444(v1, v2))
 
                             temp = IOHelper.read_struct(io_nximg, '<2B', False)
                 elif image_format == IMAGE_FORMAT_8888:
@@ -599,6 +608,37 @@ class IMG:
                 data_raw = IOHelper.read_range(io_raw)
 
         return data_raw
+
+    @staticmethod
+    def _png_to_nximg(data, image_format):
+        data_nximg = bytes()
+
+        with BytesIO(data) as io_png:
+            with BytesIO() as io_nximg:
+                png = PngImageFile(io_png)
+                w, h = png.width, png.height
+
+                if image_format == IMAGE_FORMAT_1555:
+                    for y in range(h):
+                        for x in range(w):
+                            [r, g, b, a] = png.getpixel((x, y))
+                            IOHelper.write_struct(io_nximg, "<2B", *NXColor.to_1555(r, g, b, a))
+                elif image_format == IMAGE_FORMAT_4444:
+                    for y in range(h):
+                        for x in range(w):
+                            [r, g, b, a] = png.getpixel((x, y))
+                            IOHelper.write_struct(io_nximg, "<2B", *NXColor.to_4444(r, g, b, a))
+                elif image_format == IMAGE_FORMAT_8888:
+                    for y in range(h):
+                        for x in range(w):
+                            [r, g, b, a] = png.getpixel((x, y))
+                            IOHelper.write_struct(io_nximg, "<4B", b, g, r, a)
+                else:
+                    raise Exception('Unsupport image format: %s' % image_format)
+
+                data_nximg = IOHelper.read_range(io_nximg)
+
+        return data_nximg, w, h
 
     @property
     def color_board(self):

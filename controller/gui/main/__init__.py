@@ -60,11 +60,6 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.a_extract_mode_wodir.triggered.connect(lambda: self.set_extract_mode('wodir'))
         self.tw_content.currentChanged.connect(self._tw_content_current_changed)
 
-        self.a_insert_img.setEnabled(False)
-        self.a_insert_img.setText('%s（未完成）' % self.a_insert_img.text())
-        self.a_replace_img.setEnabled(False)
-        self.a_replace_img.setText('%s（未完成）' % self.a_replace_img.text())
-
     def add_tab_widget(self, name, widget):
         self.tab_widgets.append(widget)
         self.tw_content.addTab(widget, name)

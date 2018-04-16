@@ -34,4 +34,5 @@ class GUI:
         with StringIO() as io:
             traceback.print_exception(type, value, tb, file=io)
             err_str = IOHelper.read_range(io)
+        print(err_str)
         QMessageBox.information(None, None, err_str)

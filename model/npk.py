@@ -111,10 +111,9 @@ class NPK:
         self._files.pop(index)
 
     def replace_file(self, index, data):
-        file = self._files[index]  # type: dict
-        file['data'] = data
-        file['size'] = len(data)
-        file['offset'] = None
+        name = self._files[index]['name']
+        self.remove_file(index)
+        self.insert_file(index, name, data)
 
     def insert_file(self, index, name, data):
         file = {
