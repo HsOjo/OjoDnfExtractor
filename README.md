@@ -6,8 +6,8 @@
 
 ## 下载地址
 
-* [OS X](http://p5tcvxkd7.bkt.clouddn.com/OjoDnfExtractor.app.zip)
-* [Windows](http://p5tcvxkd7.bkt.clouddn.com/OjoDnfExtractor.exe)
+* [OS X](http://project.stor.hsojo.com/OjoDnfExtractor.app.zip)
+* [Windows](http://project.stor.hsojo.com/OjoDnfExtractor.exe)
 
 由于开发环境没有安装linux系统，所以，需要的话就要自己动手打包了。
 
