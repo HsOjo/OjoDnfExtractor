@@ -58,6 +58,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.a_extract_all_map.triggered.connect(self._a_extract_all_map_triggered)
         self.a_extract_mode_raw.triggered.connect(lambda: self.set_extract_mode('raw'))
         self.a_extract_mode_wodir.triggered.connect(lambda: self.set_extract_mode('wodir'))
+        self.a_extract_pos_info.triggered.connect(self._a_extract_pos_info_triggered)
         self.tw_content.currentChanged.connect(self._tw_content_current_changed)
 
     def add_tab_widget(self, name, widget):
@@ -156,6 +157,11 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         cw = self.current_widget
         if isinstance(cw, IMGWidget):
             cw.extract_all_map_image()
+
+    def _a_extract_pos_info_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, IMGWidget):
+            cw.extract_pos_info()
 
     def _a_save_triggered(self):
         cw = self.current_widget

@@ -1,3 +1,4 @@
+import json
 import os
 import traceback
 from io import BytesIO
@@ -256,6 +257,20 @@ class IMGWidget(Ui_IMGWidget, QWidget):
                 common.write_file(path, data)
             else:
                 break
+
+    def extract_pos_info(self):
+        ue = self._upper_event
+        img = self._img
+
+        path = '%s/%s' % (ue['get_extract_dir'](), 'info.json')
+
+        info = []
+        for index in img.images:
+            i = img.info(index)
+            info.append({'x': i['x'], 'y': i['y']})
+
+        with open(path, 'w') as io:
+            json.dump(info, io, ensure_ascii=False)
 
     def insert_image(self):
         img = self._img

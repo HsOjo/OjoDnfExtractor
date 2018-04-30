@@ -92,6 +92,8 @@ class Ui_MainWindow(object):
         self.a_sound_single.setCheckable(True)
         self.a_sound_single.setChecked(True)
         self.a_sound_single.setObjectName("a_sound_single")
+        self.a_extract_pos_info = QtWidgets.QAction(MainWindow)
+        self.a_extract_pos_info.setObjectName("a_extract_pos_info")
         self.m_extract_mode.addAction(self.a_extract_mode_wodir)
         self.m_extract_mode.addAction(self.a_extract_mode_raw)
         self.m_main.addAction(self.a_open)
@@ -123,6 +125,8 @@ class Ui_MainWindow(object):
         self.m_img.addSeparator()
         self.m_img.addAction(self.a_extract_map)
         self.m_img.addAction(self.a_extract_all_map)
+        self.m_img.addSeparator()
+        self.m_img.addAction(self.a_extract_pos_info)
         self.m_img.addSeparator()
         self.m_img.addAction(self.a_insert_img)
         self.m_img.addAction(self.a_replace_img)
@@ -177,4 +181,5 @@ class Ui_MainWindow(object):
         self.a_extract_map.setText(_translate("MainWindow", "提取图像（map）"))
         self.a_extract_all_map.setText(_translate("MainWindow", "提取所有图像（map）"))
         self.a_sound_single.setText(_translate("MainWindow", "单实例播放"))
+        self.a_extract_pos_info.setText(_translate("MainWindow", "提取偏移信息"))
 

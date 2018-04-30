@@ -88,6 +88,8 @@
     <addaction name="a_extract_map"/>
     <addaction name="a_extract_all_map"/>
     <addaction name="separator"/>
+    <addaction name="a_extract_pos_info"/>
+    <addaction name="separator"/>
     <addaction name="a_insert_img"/>
     <addaction name="a_replace_img"/>
     <addaction name="a_remove_img"/>
@@ -266,6 +268,11 @@
    </property>
    <property name="text">
     <string>单实例播放</string>
+   </property>
+  </action>
+  <action name="a_extract_pos_info">
+   <property name="text">
+    <string>提取偏移信息</string>
    </property>
   </action>
  </widget>
