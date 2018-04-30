@@ -26,6 +26,10 @@ class GUI:
     def start(self):
         self.screen.show()
         self.main.show()
+
+        for file in self.args.files:
+            self.main.open_file_auto(file)
+
         code = self.qt.exec_()
         return code
 

@@ -1,3 +1,5 @@
+import os
+
 from model.img import IMG
 from model.npk import NPK
 from util.terminal import Terminal
@@ -15,16 +17,33 @@ class Command:
         }, 'open a file.')
 
     def start(self):
-        self._term.start()
+        files = self.args.files
+        if len(files) > 0:
+            self.open_auto(files[1])
+        else:
+            self._term.start()
         return 0
 
     @staticmethod
-    def open(type_, file):
+    def open(type_, path):
         if type_ == 'npk':
-            with open(file, 'rb+') as io:
+            with open(path, 'rb+') as io:
                 NPKTerminal(NPK(io)).start()
         elif type_ == 'img':
-            with open(file, 'rb+') as io:
+            with open(path, 'rb+') as io:
                 IMGTerminal(IMG(io)).start()
         else:
             raise Exception('Unsupport type_.')
+
+    @staticmethod
+    def open_auto(path):
+        if os.path.exists(path):
+            [dir, file] = os.path.split(path)
+            if file[-4:].lower() == '.npk':
+                Command.open('npk', path)
+            elif file[-4:].lower() == '.img':
+                Command.open('img', path)
+            else:
+                raise Exception('Unknown file type.', file)
+        else:
+            raise Exception('File not exists: %s' % path)

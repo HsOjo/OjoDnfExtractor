@@ -64,21 +64,28 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.tab_widgets.append(widget)
         self.tw_content.addTab(widget, name)
 
-    def open_file(self, type, name, path):
-        if type == 'npk':
+    def open_file(self, type_, name, path):
+        if type_ == 'npk':
             self.add_tab_widget(name, NPKWidget(path, self._event))
-        elif type == 'img':
+        elif type_ == 'img':
             self.add_tab_widget(name, IMGWidget(path, self._event))
 
-    def _a_open_triggered(self):
-        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='打开文件', directory='./',
-                                                   filter='NPK 文件(*.npk);;IMG 文件(*.img);;所有文件(*)')
+    def open_file_auto(self, path):
         if os.path.exists(path):
             [dir, file] = os.path.split(path)
             if file[-4:].lower() == '.npk':
                 self.open_file('npk', file, path)
             elif file[-4:].lower() == '.img':
                 self.open_file('img', file, path)
+            else:
+                raise Exception('Unknown file type.', file)
+        else:
+            raise Exception('File not exists: %s' % path)
+
+    def _a_open_triggered(self):
+        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='打开文件', directory='./',
+                                                   filter='NPK 文件(*.npk);;IMG 文件(*.img);;所有文件(*)')
+        self.open_file_auto(path)
 
     def _a_close_triggered(self):
         if self.current_widget is not None:
