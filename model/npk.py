@@ -141,5 +141,8 @@ class NPK:
         if files is not None:
             return list(range(len(files)))
 
+    def __len__(self):
+        return len(self._files)
+
     def __del__(self):
         self._io.close()
