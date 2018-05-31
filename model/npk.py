@@ -28,7 +28,7 @@ class NPK:
         files = []
         for i in range(count):
             offset, size = IOHelper.read_struct(io, '<2i')
-            name = NPK._decrypt_name(io.read(256)).decode('ascii')
+            name = NPK._decrypt_name(io.read(256)).decode('euc_kr')
             name = name[:name.find('\x00')]
             file = {
                 'name': name,
