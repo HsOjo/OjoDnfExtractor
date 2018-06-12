@@ -28,8 +28,14 @@ class NPK:
         files = []
         for i in range(count):
             offset, size = IOHelper.read_struct(io, '<2i')
-            name = NPK._decrypt_name(io.read(256)).decode('euc_kr')
-            name = name[:name.find('\x00')]
+            name_data = NPK._decrypt_name(io.read(256))
+            try:
+                name = name_data.decode('euc_kr')
+                name = name[:name.find('\x00')]
+            except:
+                name = name_data[:name_data.find(b'\x00')].decode('euc_kr')
+                print('Bad Filename: ', name_data)
+
             file = {
                 'name': name,
                 'offset': offset,
