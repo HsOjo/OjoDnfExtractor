@@ -9,11 +9,12 @@ C_DECORD_FLAG = bytes('puchikon@neople dungeon and fighter %s\x00' % ('DNF' * 73
 
 
 class NPK:
-    def __init__(self, io):
+    def __init__(self, io=None):
         self._io = io  # type: FileIO
         self._files = []
 
-        self._open()
+        if io is not None:
+            self._open()
 
     def _open(self):
         io = self._io
@@ -46,6 +47,21 @@ class NPK:
 
         self._files = files
 
+    def from_data(self, data: list):
+        """{ 'name': str/bytes, 'data': bytes}"""
+        files = self._files
+        files.clear()
+        for i in data:
+            files.append({'name': i['name'], 'data': i['data'], 'size': len(i['data'])})
+
+    def to_data(self):
+        """{ 'name': str/bytes, 'data': bytes}"""
+        files = self._files
+        data = []
+        for file in files:
+            data.append({'name': file['name'], 'data': file['data']})
+        return data
+
     def load_file(self, index):
         file = self._files[index]
 
@@ -72,6 +88,8 @@ class NPK:
         io.seek(0)
         io.truncate()
 
+        head_data = b''
+
         # build head in memory.
         with BytesIO() as io_head:
             IOHelper.write_ascii_string(io_head, FILE_MAGIC)
@@ -83,8 +101,16 @@ class NPK:
             offset = 52 + count * 264
 
             for file in files:
+                file['offset'] = offset
+                file['size'] = len(file['data'])
                 IOHelper.write_struct(io_head, '<2i', file['offset'], file['size'])
-                name = NPK._decrypt_name(file['name'].encode(encoding='ascii'))
+                if isinstance(file['name'], str):
+                    name_data = file['name'].encode(encoding='euc_kr')
+                elif isinstance(file['name'], bytes):
+                    name_data = file['name']
+                else:
+                    raise Exception('Filename type Error: %s(%s)' % (file['name'], type(file['name'])))
+                name = NPK._decrypt_name(name_data)
                 io_head.write(name)
 
                 offset += file['size']
@@ -112,6 +138,13 @@ class NPK:
     def set_info(self, index, key, value):
         file = self._files[index]  # type: dict
         file[key] = value
+
+    def id_from_name(self, name):
+        files = self._files
+        for i in range(len(files)):
+            file = files[i]
+            if name == file['name']:
+                return i
 
     def remove_file(self, index):
         self._files.pop(index)
@@ -149,6 +182,3 @@ class NPK:
 
     def __len__(self):
         return len(self._files)
-
-    def __del__(self):
-        self._io.close()

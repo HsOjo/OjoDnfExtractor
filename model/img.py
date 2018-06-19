@@ -58,15 +58,16 @@ IMAGE_EXTRA_TEXT = {
 
 
 class IMG:
-    def __init__(self, io):
+    def __init__(self, io=None):
         self._io = io  # type: FileIO
         self._images = []
         self._map_images = []
-        self._version = 0
+        self._version = FILE_VERSION_2
         self._color_board = []
         self._color_boards = []
 
-        self._open()
+        if io is not None:
+            self._open()
 
     def _open_images(self, count):
         io = self._io
@@ -107,6 +108,7 @@ class IMG:
                     image['top'] = ly
                     image['right'] = rx
                     image['bottom'] = ry
+                    # horizontal, vertical
                     image['rotate'] = rotate
 
                 if self._version == FILE_VERSION_1:
@@ -325,8 +327,7 @@ class IMG:
 
         # compress data, get size, add to data_list.
         if version == FILE_VERSION_5:
-            for i in sorted(map_images):
-                map_image = map_images[i]
+            for map_image in sorted(map_images):
                 data = map_image['data']
                 map_image['raw_size'] = len(data)
                 data = zlib.compress(data)
@@ -334,8 +335,7 @@ class IMG:
 
                 images_data.append(data)
         else:
-            for i in images:
-                image = images[i]
+            for image in images:
                 if image['format'] != IMAGE_FORMAT_LINK:
                     data = image['data']
                     if image['extra'] == IMAGE_EXTRA_ZLIB or image['extra'] == IMAGE_EXTRA_MAP_ZLIB:
