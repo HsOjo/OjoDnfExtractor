@@ -25,6 +25,7 @@ class IMGWidget(Ui_IMGWidget, QWidget):
         else:
             raise Exception('Unsupport value type.')
 
+        self._io = io
         self._img = IMG(io)
         self._pixmap_temp = {}
         self._changing = False
@@ -32,10 +33,15 @@ class IMGWidget(Ui_IMGWidget, QWidget):
         self.tw_images.currentItemChanged.connect(self._tw_images_current_item_changed)
         self.tw_images.cellChanged.connect(self._tw_images_cell_changed)
         self.tw_map_images.currentItemChanged.connect(self._tw_map_images_current_item_changed)
+        self.tw_color_boards.currentItemChanged.connect(self._tw_color_boards_current_item_changed)
 
         self.refresh_images()
         self.refresh_map_images()
         self.refresh_info()
+        self.refresh_color_boards()
+
+    def __del__(self):
+        self._io.close()
 
     def _tw_images_cell_changed(self, row, col):
         if not self._changing:
@@ -64,6 +70,35 @@ class IMGWidget(Ui_IMGWidget, QWidget):
                     img.set_info(index, 'bottom', int(b))
             except Exception as e:
                 traceback.print_exc()
+
+    def refresh_color_boards(self):
+        tw = self.tw_color_boards
+        img = self._img
+
+        row_count = tw.rowCount()
+        color_board_count = len(img.color_boards)
+
+        if row_count > color_board_count:
+            for i in range(row_count - 1, color_board_count - 1, -1):
+                tw.removeRow(i)
+        else:
+            for i in range(color_board_count - row_count):
+                tw.insertRow(0)
+
+        for i, v in enumerate(img.color_boards):
+            tw.setItem(i, 0, common.qtwi_str(i))
+            tw.setItem(i, 1, common.qtwi_str(len(v)))
+
+        tw.setCurrentCell(0, 0)
+
+    def _tw_color_boards_current_item_changed(self, new, old):
+        img = self._img
+
+        index = self.tw_images.currentRow()
+        info = img.info(index)
+
+        pixmap = self.get_pixmap('normal', index, new.row())
+        self.update_view(info['x'], info['y'], info['w'], info['h'], info['mw'], info['mh'], pixmap)
 
     def refresh_images(self):
         self._changing = True
@@ -158,9 +193,13 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             pixmap_temp[key] = pixmap
             return pixmap
 
+    def update_view(self, x, y, w, h, cw, ch, pixmap):
+        ue = self._upper_event
+        ue['set_canvas'](cw, ch)
+        ue['set_texture'](x, y, w, h, pixmap)
+
     def _tw_images_current_item_changed(self, new, old):
         if new is not None:
-            ue = self._upper_event
             img = self._img
 
             index = new.row()
@@ -171,21 +210,17 @@ class IMGWidget(Ui_IMGWidget, QWidget):
 
             color_board_index = self.tw_color_boards.currentRow()
             pixmap = self.get_pixmap('normal', index, color_board_index)
-
-            ue['set_canvas'](info['mw'], info['mh'])
-            ue['set_texture'](info['x'], info['y'], info['w'], info['h'], pixmap)
+            self.update_view(info['x'], info['y'], info['w'], info['h'], info['mw'], info['mh'], pixmap)
 
     def _tw_map_images_current_item_changed(self, new, old):
         if new is not None:
-            ue = self._upper_event
             img = self._img
 
             index = new.row()
-            pixmap = self.get_pixmap('map', index)
-
             info = img.info_map(index)
-            ue['set_canvas'](info['w'], info['h'])
-            ue['set_texture'](0, 0, info['w'], info['h'], pixmap)
+
+            pixmap = self.get_pixmap('map', index)
+            self.update_view(0, 0, info['w'], info['h'], info['w'], info['h'], pixmap)
 
     def extract_gen_path(self, index, data_type):
         ue = self._upper_event

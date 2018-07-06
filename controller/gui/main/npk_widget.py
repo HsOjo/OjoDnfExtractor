@@ -24,6 +24,7 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         else:
             raise Exception('Unsupport value type.')
 
+        self._io = io
         self._npk = NPK(io)
         self._sound = None
         self._sound_temp = {}
@@ -32,6 +33,9 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         self.tw_files.cellChanged.connect(self._tw_files_cell_changed)
 
         self.refresh_files()
+
+    def __del__(self):
+        self._io.close()
 
     def _tw_files_cell_changed(self, row, col):
         if not self._changing:
