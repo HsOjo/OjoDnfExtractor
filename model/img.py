@@ -71,6 +71,7 @@ class IMG:
 
     def _open_images(self, count):
         io = self._io
+        version = self._version
         images = []
 
         for i in range(count):
@@ -86,7 +87,7 @@ class IMG:
                 extra, w, h, size, x, y, mw, mh = IOHelper.read_struct(io, '<8i')
 
                 # fix size to real size.
-                if extra == IMAGE_EXTRA_NONE:
+                if (version == FILE_VERSION_1 or version == FILE_VERSION_2) and extra == IMAGE_EXTRA_NONE:
                     size = w * h * PIX_SIZE[fmt]
 
                 image['extra'] = extra

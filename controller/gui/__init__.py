@@ -40,4 +40,4 @@ class GUI:
             traceback.print_exception(type, value, tb, file=io)
             err_str = IOHelper.read_range(io)
         print(err_str)
-        QMessageBox.information(None, None, err_str)
+        QMessageBox.warning(None, '错误：', err_str)

@@ -1,8 +1,8 @@
 import os
 import traceback
-from io import BytesIO
+from io import BytesIO, StringIO
 
-from PyQt5.QtWidgets import QWidget, QFileDialog, QTableWidgetItem
+from PyQt5.QtWidgets import QWidget, QFileDialog, QTableWidgetItem, QMessageBox
 
 from lib.bass import Bass
 from model.npk import NPK
@@ -186,12 +186,19 @@ class NPKWidget(Ui_NPKWidget, QWidget):
 
             info = npk.info(index)
             imgw = IMGWidget(npk.load_file(index), self._upper_event, info['name'])
-            if not imgw.extract_pos_info():
-                break
-            if not imgw.extract_all_map_image():
-                break
-            if not imgw.extract_all_image():
-                break
+            try:
+                if not imgw.extract_pos_info():
+                    break
+                if not imgw.extract_all_map_image():
+                    break
+                if not imgw.extract_all_image():
+                    break
+            except:
+                with StringIO() as io:
+                    traceback.print_exc(file=io)
+                    io.seek(0)
+                    content = io.read()
+                QMessageBox.warning(None, '错误：', '''%s\n\n%s''' % (info['name'], content))
 
         pw.close()
 
