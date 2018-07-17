@@ -8,6 +8,8 @@ from lib.bass import Bass
 from model.npk import NPK
 from util import common
 from view.main.npk_widget import Ui_NPKWidget
+from .img_widget import IMGWidget
+from ..progress_widget import ProgressWidget
 
 
 class NPKWidget(Ui_NPKWidget, QWidget):
@@ -167,6 +169,33 @@ class NPKWidget(Ui_NPKWidget, QWidget):
                 common.write_file(path, data)
             else:
                 break
+
+    def extract_img_all(self):
+        ue = self._upper_event
+        npk = self._npk
+
+        pw = ProgressWidget()
+        pw.set_max(len(npk.files) - 1)
+        pw.set_title('提取所有IMG内容中...')
+        pw.show()
+        for index in npk.files:
+            pw.set_value(index)
+            ue['process_events']()
+            if pw.cancel:
+                return False
+
+            info = npk.info(index)
+            imgw = IMGWidget(npk.load_file(index), self._upper_event, info['name'])
+            if not imgw.extract_pos_info():
+                break
+            if not imgw.extract_all_map_image():
+                break
+            if not imgw.extract_all_image():
+                break
+
+        pw.close()
+
+        return True
 
     def insert_file(self):
         npk = self._npk

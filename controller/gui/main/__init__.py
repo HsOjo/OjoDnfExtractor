@@ -27,6 +27,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self._event = {
             'set_texture': upper_event['set_texture'],
             'set_canvas': upper_event['set_canvas'],
+            'process_events': upper_event['process_events'],
             'open_file': self.open_file,
             'get_extract_dir': self.get_extract_dir,
             'get_extract_mode': lambda: self._extract_mode,
@@ -52,6 +53,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.a_extract_dir.triggered.connect(lambda: self.set_extract_dir())
         self.a_extract_npk.triggered.connect(self._a_extract_npk_triggered)
         self.a_extract_all_npk.triggered.connect(self._a_extract_all_npk_triggered)
+        self.a_extract_img_all_npk.triggered.connect(self._a_extract_img_all_npk_triggered)
         self.a_extract_img.triggered.connect(self._a_extract_img_triggered)
         self.a_extract_all_img.triggered.connect(self._a_extract_all_img_triggered)
         self.a_extract_map.triggered.connect(self._a_extract_map_triggered)
@@ -80,7 +82,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
                 self.open_file('img', file, path, img_name=file.replace('_', '/'))
             else:
                 raise Exception('Unknown file type.', file)
-        else:
+        elif path != '':
             raise Exception('File not exists: %s' % path)
 
     def _a_open_triggered(self):
@@ -137,6 +139,11 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         cw = self.current_widget
         if isinstance(cw, NPKWidget):
             cw.extract_all_file()
+
+    def _a_extract_img_all_npk_triggered(self):
+        cw = self.current_widget
+        if isinstance(cw, NPKWidget):
+            cw.extract_img_all()
 
     def _a_extract_img_triggered(self):
         cw = self.current_widget

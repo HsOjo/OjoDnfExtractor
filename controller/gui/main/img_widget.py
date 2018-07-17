@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QWidget, QFileDialog, QTableWidgetItem
 from model.img import IMG, IMAGE_FORMAT_LINK, IMAGE_EXTRA_MAP_ZLIB, IMAGE_FORMAT_TEXT, IMAGE_EXTRA_TEXT
 from util import common
 from view.main.img_widget import Ui_IMGWidget
+from ..progress_widget import ProgressWidget
 
 
 class IMGWidget(Ui_IMGWidget, QWidget):
@@ -223,7 +224,7 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             pixmap = self.get_pixmap('map', index)
             self.update_view(0, 0, info['w'], info['h'], info['w'], info['h'], pixmap)
 
-    def extract_gen_path(self, index, data_type):
+    def extract_gen_dir(self):
         ue = self._upper_event
         name = common.get_filename_wo_ext(self._name)
 
@@ -232,15 +233,23 @@ class IMGWidget(Ui_IMGWidget, QWidget):
 
         if extract_dir is not None:
             if extract_mode == 'raw':
-                dirname = '%s/%s/%s' % (extract_dir, name, data_type)
-                os.makedirs(dirname, exist_ok=True)
-                path = '%s/%s.png' % (dirname, index)
+                ex_dir = '%s/%s' % (extract_dir, name)
             elif extract_mode == 'wodir':
-                dirname = '%s/%s/%s' % (extract_dir, name.replace('/', '_'), data_type)
-                os.makedirs(dirname, exist_ok=True)
-                path = '%s/%s.png' % (dirname, index)
+                dirname, filename = os.path.split(name)
+                ex_dir = '%s/%s/%s' % (extract_dir, dirname.replace('/', '_'), filename)
             else:
                 raise Exception('Unsupport mode: %s' % extract_mode)
+
+            os.makedirs(ex_dir, exist_ok=True)
+            return ex_dir
+
+    def extract_gen_path(self, index, data_type):
+        ex_dir = self.extract_gen_dir()
+
+        if ex_dir is not None:
+            dirname = '%s/%s' % (ex_dir, data_type)
+            os.makedirs(dirname, exist_ok=True)
+            path = '%s/%s.png' % (dirname, index)
 
             return path
 
@@ -260,22 +269,39 @@ class IMGWidget(Ui_IMGWidget, QWidget):
                 common.write_file(path, data)
 
     def extract_all_image(self):
+        ue = self._upper_event
         img = self._img
         count_color_boards = len(img.color_boards)
-        color_board_index = self.tw_color_boards.currentRow()
 
+        pw = ProgressWidget()
+        pw.set_max(len(img.images) - 1)
+        pw.set_title('提取所有图片中...')
+        pw.show()
         for index in img.images:
+            pw.set_value(index)
+            ue['process_events']()
+            if pw.cancel:
+                return False
+
             if count_color_boards > 0:
                 for color_board_index in range(count_color_boards):
                     path = self.extract_gen_path(index, 'image_color_%s' % color_board_index)
                     if path is not None:
                         data = img.build(index, color_board_index)
                         common.write_file(path, data)
+                    else:
+                        return False
             else:
                 path = self.extract_gen_path(index, 'image')
                 if path is not None:
-                    data = img.build(index, color_board_index)
+                    data = img.build(index, 0)
                     common.write_file(path, data)
+                else:
+                    return False
+
+        pw.close()
+
+        return True
 
     def extract_current_map_image(self):
         img = self._img
@@ -297,21 +323,28 @@ class IMGWidget(Ui_IMGWidget, QWidget):
                 data = img.build_map(index)
                 common.write_file(path, data)
             else:
-                break
+                return False
+
+        return True
 
     def extract_pos_info(self):
-        ue = self._upper_event
         img = self._img
 
-        path = '%s/%s' % (ue['get_extract_dir'](), 'info.json')
+        ex_dir = self.extract_gen_dir()
+        if ex_dir is not None:
+            path = '%s/%s' % (ex_dir, 'info.json')
 
-        info = []
-        for index in img.images:
-            i = img.info(index)
-            info.append({'x': i['x'], 'y': i['y']})
+            info = []
+            for index in img.images:
+                i = img.info(index)
+                info.append({'x': i['x'], 'y': i['y']})
 
-        with open(path, 'w') as io:
-            json.dump(info, io, ensure_ascii=False)
+            with open(path, 'w') as io:
+                json.dump(info, io, ensure_ascii=False)
+
+            return True
+
+        return False
 
     def insert_image(self):
         img = self._img

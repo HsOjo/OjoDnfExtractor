@@ -72,6 +72,8 @@
     <addaction name="a_extract_npk"/>
     <addaction name="a_extract_all_npk"/>
     <addaction name="separator"/>
+    <addaction name="a_extract_img_all_npk"/>
+    <addaction name="separator"/>
     <addaction name="a_insert_npk"/>
     <addaction name="a_replace_npk"/>
     <addaction name="a_remove_npk"/>
@@ -273,6 +275,11 @@
   <action name="a_extract_pos_info">
    <property name="text">
     <string>提取偏移信息</string>
+   </property>
+  </action>
+  <action name="a_extract_img_all_npk">
+   <property name="text">
+    <string>提取所有IMG内容</string>
    </property>
   </action>
  </widget>

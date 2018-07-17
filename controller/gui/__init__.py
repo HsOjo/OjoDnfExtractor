@@ -19,6 +19,7 @@ class GUI:
         self._event = {
             'set_texture': self.screen.set_texture,
             'set_canvas': self.screen.set_canvas,
+            'process_events': self.qt.processEvents,
         }
 
         self.main = MainWindow(self._event)

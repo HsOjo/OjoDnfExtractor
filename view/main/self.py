@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'self.ui'
 #
-# Created by: PyQt5 UI code generator 5.10
+# Created by: PyQt5 UI code generator 5.11.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -94,6 +94,8 @@ class Ui_MainWindow(object):
         self.a_sound_single.setObjectName("a_sound_single")
         self.a_extract_pos_info = QtWidgets.QAction(MainWindow)
         self.a_extract_pos_info.setObjectName("a_extract_pos_info")
+        self.a_extract_img_all_npk = QtWidgets.QAction(MainWindow)
+        self.a_extract_img_all_npk.setObjectName("a_extract_img_all_npk")
         self.m_extract_mode.addAction(self.a_extract_mode_wodir)
         self.m_extract_mode.addAction(self.a_extract_mode_raw)
         self.m_main.addAction(self.a_open)
@@ -114,6 +116,8 @@ class Ui_MainWindow(object):
         self.m_npk.addSeparator()
         self.m_npk.addAction(self.a_extract_npk)
         self.m_npk.addAction(self.a_extract_all_npk)
+        self.m_npk.addSeparator()
+        self.m_npk.addAction(self.a_extract_img_all_npk)
         self.m_npk.addSeparator()
         self.m_npk.addAction(self.a_insert_npk)
         self.m_npk.addAction(self.a_replace_npk)
@@ -182,4 +186,5 @@ class Ui_MainWindow(object):
         self.a_extract_all_map.setText(_translate("MainWindow", "提取所有图像（map）"))
         self.a_sound_single.setText(_translate("MainWindow", "单实例播放"))
         self.a_extract_pos_info.setText(_translate("MainWindow", "提取偏移信息"))
+        self.a_extract_img_all_npk.setText(_translate("MainWindow", "提取所有IMG内容"))
 
