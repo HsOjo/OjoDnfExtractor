@@ -102,3 +102,6 @@ def param_split(s):
 
 def qtwi_str(text=''):
     return QTableWidgetItem(str(text))
+
+def get_filename_wo_ext(filename:str):
+    return filename[:filename.rfind('.')]

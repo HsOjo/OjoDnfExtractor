@@ -65,11 +65,11 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.tab_widgets.append(widget)
         self.tw_content.addTab(widget, name)
 
-    def open_file(self, type_, name, path):
+    def open_file(self, type_, name, path, **kwargs):
         if type_ == 'npk':
             self.add_tab_widget(name, NPKWidget(path, self._event))
         elif type_ == 'img':
-            self.add_tab_widget(name, IMGWidget(path, self._event))
+            self.add_tab_widget(name, IMGWidget(path, self._event, kwargs.get('img_name', '')))
 
     def open_file_auto(self, path):
         if os.path.exists(path):
@@ -77,7 +77,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             if file[-4:].lower() == '.npk':
                 self.open_file('npk', file, path)
             elif file[-4:].lower() == '.img':
-                self.open_file('img', file, path)
+                self.open_file('img', file, path, img_name=file.replace('_', '/'))
             else:
                 raise Exception('Unknown file type.', file)
         else:

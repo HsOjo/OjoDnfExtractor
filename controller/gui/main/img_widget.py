@@ -12,7 +12,7 @@ from view.main.img_widget import Ui_IMGWidget
 
 
 class IMGWidget(Ui_IMGWidget, QWidget):
-    def __init__(self, path, upper_event):
+    def __init__(self, path, upper_event, name):
         super().__init__()
         self.setupUi(self)
 
@@ -29,6 +29,7 @@ class IMGWidget(Ui_IMGWidget, QWidget):
         self._img = IMG(io)
         self._pixmap_temp = {}
         self._changing = False
+        self._name = name
 
         self.tw_images.currentItemChanged.connect(self._tw_images_current_item_changed)
         self.tw_images.cellChanged.connect(self._tw_images_cell_changed)
@@ -224,15 +225,18 @@ class IMGWidget(Ui_IMGWidget, QWidget):
 
     def extract_gen_path(self, index, data_type):
         ue = self._upper_event
+        name = common.get_filename_wo_ext(self._name)
 
         extract_dir = ue['get_extract_dir']()
         extract_mode = ue['get_extract_mode']()
 
         if extract_dir is not None:
             if extract_mode == 'raw':
-                path = '%s/%s.png' % (extract_dir, index)
+                dirname = '%s/%s/%s' % (extract_dir, name, data_type)
+                os.makedirs(dirname, exist_ok=True)
+                path = '%s/%s.png' % (dirname, index)
             elif extract_mode == 'wodir':
-                dirname = '%s/%s' % (extract_dir, data_type)
+                dirname = '%s/%s/%s' % (extract_dir, name.replace('/', '_'), data_type)
                 os.makedirs(dirname, exist_ok=True)
                 path = '%s/%s.png' % (dirname, index)
             else:
@@ -257,19 +261,21 @@ class IMGWidget(Ui_IMGWidget, QWidget):
 
     def extract_all_image(self):
         img = self._img
+        count_color_boards = len(img.color_boards)
         color_board_index = self.tw_color_boards.currentRow()
 
         for index in img.images:
-            if color_board_index < 0:
+            if count_color_boards > 0:
+                for color_board_index in range(count_color_boards):
+                    path = self.extract_gen_path(index, 'image_color_%s' % color_board_index)
+                    if path is not None:
+                        data = img.build(index, color_board_index)
+                        common.write_file(path, data)
+            else:
                 path = self.extract_gen_path(index, 'image')
-            else:
-                path = self.extract_gen_path(index, 'image_color_%s' % color_board_index)
-
-            if path is not None:
-                data = img.build(index, color_board_index)
-                common.write_file(path, data)
-            else:
-                break
+                if path is not None:
+                    data = img.build(index, color_board_index)
+                    common.write_file(path, data)
 
     def extract_current_map_image(self):
         img = self._img

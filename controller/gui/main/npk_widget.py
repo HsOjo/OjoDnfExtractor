@@ -58,7 +58,7 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             data = npk.load_file(index)
             [dirname, filename] = os.path.split(info['name'])
 
-            ue['open_file']('img', filename, data)
+            ue['open_file']('img', filename, data, img_name=info['name'])
 
     def refresh_files(self):
         self._changing = True
