@@ -22,7 +22,7 @@ for i in os.listdir(ip2):
             for n in npk.files:
                 info_img = npk.info(n)
                 dirname, filename = os.path.split(info_img['name'])
-                dirname = '%s/%s' % (output, dirname)
+                dirname = '%s/%s/%s' % (output, dirname, filename)
                 os.makedirs(dirname, exist_ok=True)
 
                 print('[%s]extracting img: %s' % (i, filename))
