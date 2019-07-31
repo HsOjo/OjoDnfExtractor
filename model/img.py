@@ -164,6 +164,7 @@ class IMG:
             else:
                 # unknown.
                 [unknown] = IOHelper.read_struct(io, 'h')
+                images_size = 0
 
             # keep: 0
             [keep, version, img_count] = IOHelper.read_struct(io, '<3i')
@@ -194,7 +195,11 @@ class IMG:
             # count image offset.
             if version != FILE_VERSION_1:
                 # behind header.
-                offset = io.tell()
+                if images_size != 0:
+                    offset = images_size + 32
+                else:
+                    offset = io.tell()
+
                 if version == FILE_VERSION_5:
                     map_images = self._map_images
                     for i in range(len(map_images)):
@@ -225,6 +230,9 @@ class IMG:
     def load_image(self, index):
         io = self._io
         image = self._images[index]
+
+        if image['format'] == IMAGE_FORMAT_LINK:
+            return None
 
         if image['data'] is not None:
             return image['data']
@@ -466,7 +474,10 @@ class IMG:
 
         info = {}
         if image['format'] == IMAGE_FORMAT_LINK:
-            info.update(images[image['link']])
+            if image['link'] < len(images):
+                info.update(images[image['link']])
+            else:
+                print('link index out of range: %d' % image['link'])
 
         info.update(image)
         info.pop('data', None)

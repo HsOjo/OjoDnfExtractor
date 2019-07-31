@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'self.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.2
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -96,6 +96,10 @@ class Ui_MainWindow(object):
         self.a_extract_pos_info.setObjectName("a_extract_pos_info")
         self.a_extract_img_all_npk = QtWidgets.QAction(MainWindow)
         self.a_extract_img_all_npk.setObjectName("a_extract_img_all_npk")
+        self.a_clean_no_std = QtWidgets.QAction(MainWindow)
+        self.a_clean_no_std.setObjectName("a_clean_no_std")
+        self.a_clean_duplicate = QtWidgets.QAction(MainWindow)
+        self.a_clean_duplicate.setObjectName("a_clean_duplicate")
         self.m_extract_mode.addAction(self.a_extract_mode_wodir)
         self.m_extract_mode.addAction(self.a_extract_mode_raw)
         self.m_main.addAction(self.a_open)
@@ -124,6 +128,9 @@ class Ui_MainWindow(object):
         self.m_npk.addAction(self.a_remove_npk)
         self.m_npk.addSeparator()
         self.m_npk.addAction(self.m_sound.menuAction())
+        self.m_npk.addSeparator()
+        self.m_npk.addAction(self.a_clean_no_std)
+        self.m_npk.addAction(self.a_clean_duplicate)
         self.m_img.addAction(self.a_extract_img)
         self.m_img.addAction(self.a_extract_all_img)
         self.m_img.addSeparator()
@@ -187,4 +194,6 @@ class Ui_MainWindow(object):
         self.a_sound_single.setText(_translate("MainWindow", "单实例播放"))
         self.a_extract_pos_info.setText(_translate("MainWindow", "提取偏移信息"))
         self.a_extract_img_all_npk.setText(_translate("MainWindow", "提取所有IMG内容"))
+        self.a_clean_no_std.setText(_translate("MainWindow", "清除非标准文件"))
+        self.a_clean_duplicate.setText(_translate("MainWindow", "清除重复文件"))
 

@@ -118,7 +118,11 @@ class IMGWidget(Ui_IMGWidget, QWidget):
                 tw.insertRow(0)
 
         for i, v in enumerate(img.images):
-            info = img.info(v)
+            info = {
+                'format': None, 'link': None, 'extra': None, 'x': None, 'y': None, 'w': None, 'h': None, 'mw': None,
+                'mh': None, 'size': None,
+            }
+            info.update(img.info(v))
 
             tw.setItem(i, 0, common.qtwi_str(i))
             tw.setItem(i, 1, common.qtwi_str(IMAGE_FORMAT_TEXT.get(info['format'], 'unknown')))

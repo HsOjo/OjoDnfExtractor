@@ -103,5 +103,17 @@ def param_split(s):
 def qtwi_str(text=''):
     return QTableWidgetItem(str(text))
 
-def get_filename_wo_ext(filename:str):
+
+def get_filename_wo_ext(filename: str):
     return filename[:filename.rfind('.')]
+
+
+def is_std_name(name: str):
+    if name != name.strip():
+        return False
+
+    ext = name[-4:].lower()
+    if ext != '.img' and ext != '.ogg':
+        return False
+
+    return True

@@ -44,7 +44,17 @@
         </column>
         <column>
          <property name="text">
+          <string>文件偏移</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
           <string>文件尺寸</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>名称标准</string>
          </property>
         </column>
         <column>

@@ -80,8 +80,10 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         for i in npk.files:
             info = npk.info(i)
             tw.setItem(i, 0, common.qtwi_str(i))
-            tw.setItem(i, 1, common.qtwi_str(info['size']))
-            tw.setItem(i, 2, common.qtwi_str(info['name']))
+            tw.setItem(i, 1, common.qtwi_str(info['offset']))
+            tw.setItem(i, 2, common.qtwi_str(info['size']))
+            tw.setItem(i, 3, common.qtwi_str('Y' if common.is_std_name(info['name']) else ''))
+            tw.setItem(i, 4, common.qtwi_str(info['name']))
         self._changing = False
 
     def get_sound(self, index):
@@ -233,6 +235,26 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         index = self.tw_files.currentRow()
 
         npk.remove_file(index)
+        self.refresh_files()
+
+    def clean_no_std(self):
+        npk = self._npk
+        for index in reversed(npk.files):
+            if not common.is_std_name(npk.info(index).get('name', '')):
+                npk.remove_file(index)
+        self.refresh_files()
+
+    def clean_duplicate(self):
+        npk = self._npk
+
+        dup_list = []
+        for index in reversed(npk.files):
+            info = npk.info(index)
+            item = (info['offset'], info['size'])
+            if item in dup_list:
+                npk.remove_file(index)
+            else:
+                dup_list.append(item)
         self.refresh_files()
 
     def save_npk(self):

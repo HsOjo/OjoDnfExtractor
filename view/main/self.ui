@@ -79,6 +79,9 @@
     <addaction name="a_remove_npk"/>
     <addaction name="separator"/>
     <addaction name="m_sound"/>
+    <addaction name="separator"/>
+    <addaction name="a_clean_no_std"/>
+    <addaction name="a_clean_duplicate"/>
    </widget>
    <widget class="QMenu" name="m_img">
     <property name="title">
@@ -280,6 +283,16 @@
   <action name="a_extract_img_all_npk">
    <property name="text">
     <string>提取所有IMG内容</string>
+   </property>
+  </action>
+  <action name="a_clean_no_std">
+   <property name="text">
+    <string>清除非标准文件</string>
+   </property>
+  </action>
+  <action name="a_clean_duplicate">
+   <property name="text">
+    <string>清除重复文件</string>
    </property>
   </action>
  </widget>

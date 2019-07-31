@@ -34,7 +34,7 @@ class NPK:
                 name = name_data.decode('euc_kr')
                 name = name[:name.find('\x00')]
             except:
-                name = name_data[:name_data.find(b'\x00')].decode('euc_kr')
+                name = name_data[:name_data.find(b'\x00')].decode('euc_kr', errors='ignore')
                 print('Bad Filename: ', name_data)
 
             file = {
@@ -66,7 +66,11 @@ class NPK:
         file = self._files[index]
 
         if file['data'] is None:
-            file['data'] = IOHelper.read_range(self._io, file['offset'], file['size'])
+            if file['size'] != 0:
+                file['data'] = IOHelper.read_range(self._io, file['offset'], file['size'])
+            else:
+                print('size is zero, read all data.')
+                file['data'] = IOHelper.read_range(self._io, file['offset'], -1)
 
         return file['data']
 

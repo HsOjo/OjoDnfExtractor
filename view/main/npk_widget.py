@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'npk_widget.ui'
 #
-# Created by: PyQt5 UI code generator 5.10
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -22,7 +22,7 @@ class Ui_NPKWidget(object):
         self.tw_files.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.tw_files.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tw_files.setObjectName("tw_files")
-        self.tw_files.setColumnCount(3)
+        self.tw_files.setColumnCount(5)
         self.tw_files.setRowCount(0)
         item = QtWidgets.QTableWidgetItem()
         self.tw_files.setHorizontalHeaderItem(0, item)
@@ -30,6 +30,10 @@ class Ui_NPKWidget(object):
         self.tw_files.setHorizontalHeaderItem(1, item)
         item = QtWidgets.QTableWidgetItem()
         self.tw_files.setHorizontalHeaderItem(2, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tw_files.setHorizontalHeaderItem(3, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tw_files.setHorizontalHeaderItem(4, item)
         self.tw_files.horizontalHeader().setDefaultSectionSize(80)
         self.tw_files.horizontalHeader().setStretchLastSection(True)
         self.tw_files.verticalHeader().setVisible(False)
@@ -46,7 +50,11 @@ class Ui_NPKWidget(object):
         item = self.tw_files.horizontalHeaderItem(0)
         item.setText(_translate("NPKWidget", "索引"))
         item = self.tw_files.horizontalHeaderItem(1)
-        item.setText(_translate("NPKWidget", "文件尺寸"))
+        item.setText(_translate("NPKWidget", "文件偏移"))
         item = self.tw_files.horizontalHeaderItem(2)
+        item.setText(_translate("NPKWidget", "文件尺寸"))
+        item = self.tw_files.horizontalHeaderItem(3)
+        item.setText(_translate("NPKWidget", "名称标准"))
+        item = self.tw_files.horizontalHeaderItem(4)
         item.setText(_translate("NPKWidget", "文件名"))
 
