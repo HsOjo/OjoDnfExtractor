@@ -7,10 +7,14 @@
 ## 下载地址
 
 * [OS X](http://project.stor.hsojo.com/OjoDnfExtractor.app.zip)
+
 * [Windows](http://project.stor.hsojo.com/OjoDnfExtractor.exe)
+
+> 以上两个为上古版本，最新版本请到**releases页**自行下载。
 
 由于开发环境没有安装linux系统，所以，需要的话就要自己动手打包了。
 
 打包所需的库：
+
 * [Bass](http://www.un4seen.com/)
 
