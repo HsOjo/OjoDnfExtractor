@@ -29,7 +29,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="m_main">
@@ -68,6 +68,7 @@
      <addaction name="a_sound_single"/>
     </widget>
     <addaction name="a_load_img"/>
+    <addaction name="a_load_img_force"/>
     <addaction name="separator"/>
     <addaction name="a_extract_npk"/>
     <addaction name="a_extract_all_npk"/>
@@ -293,6 +294,14 @@
   <action name="a_clean_duplicate">
    <property name="text">
     <string>清除重复文件</string>
+   </property>
+  </action>
+  <action name="a_load_img_force">
+   <property name="text">
+    <string>加载IMG文件（强制）</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
    </property>
   </action>
  </widget>

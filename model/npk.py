@@ -62,15 +62,16 @@ class NPK:
             data.append({'name': file['name'], 'data': file['data']})
         return data
 
-    def load_file(self, index):
+    def load_file(self, index, force=False):
         file = self._files[index]
 
         if file['data'] is None:
-            if file['size'] != 0:
-                file['data'] = IOHelper.read_range(self._io, file['offset'], file['size'])
-            else:
+            if force or file['size'] == 0:
                 print('size is zero, read all data.')
                 file['data'] = IOHelper.read_range(self._io, file['offset'], -1)
+                print(len(file['data']))
+            else:
+                file['data'] = IOHelper.read_range(self._io, file['offset'], file['size'])
 
         return file['data']
 

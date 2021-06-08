@@ -194,7 +194,11 @@ class IMG:
 
             # count image offset.
             if version != FILE_VERSION_1:
-                offset = io.tell()
+                # behind header.
+                if version == FILE_VERSION_2:
+                    offset = images_size + 32
+                else:
+                    offset = io.tell()
 
                 if version == FILE_VERSION_5:
                     map_images = self._map_images

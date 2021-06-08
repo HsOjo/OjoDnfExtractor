@@ -13,7 +13,7 @@ from ..progress_widget import ProgressWidget
 
 
 class IMGWidget(Ui_IMGWidget, QWidget):
-    def __init__(self, path, upper_event, name):
+    def __init__(self, path, upper_event, img_name='', **kwargs):
         super().__init__()
         self.setupUi(self)
 
@@ -30,7 +30,7 @@ class IMGWidget(Ui_IMGWidget, QWidget):
         self._img = IMG(io)
         self._pixmap_temp = {}
         self._changing = False
-        self._name = name
+        self._name = img_name
 
         self.tw_images.currentItemChanged.connect(self._tw_images_current_item_changed)
         self.tw_images.cellChanged.connect(self._tw_images_cell_changed)

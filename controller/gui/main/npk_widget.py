@@ -13,7 +13,7 @@ from ..progress_widget import ProgressWidget
 
 
 class NPKWidget(Ui_NPKWidget, QWidget):
-    def __init__(self, path, upper_event):
+    def __init__(self, path, upper_event, **kwargs):
         super().__init__()
         self.setupUi(self)
 
@@ -51,16 +51,16 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             except Exception as e:
                 traceback.print_exc()
 
-    def load_current_img(self):
+    def load_current_img(self, **kwargs):
         ue = self._upper_event
         npk = self._npk
         index = self.tw_files.currentRow()
         info = npk.info(index)
         if info is not None:
-            data = npk.load_file(index)
+            data = npk.load_file(index, force=kwargs.get('force', False))
             [dirname, filename] = os.path.split(info['name'])
 
-            ue['open_file']('img', filename, data, img_name=info['name'])
+            ue['open_file']('img', filename, data, img_name=info['name'], **kwargs)
 
     def refresh_files(self):
         self._changing = True

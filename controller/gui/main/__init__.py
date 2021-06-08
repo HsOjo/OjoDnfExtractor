@@ -40,6 +40,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.a_save.triggered.connect(self._a_save_triggered)
         self.a_close.triggered.connect(self._a_close_triggered)
         self.a_load_img.triggered.connect(self._a_load_img_triggered)
+        self.a_load_img_force.triggered.connect(lambda: self._a_load_img_triggered(force=True))
         self.a_sound_play.triggered.connect(self._a_sound_play_triggered)
         self.a_sound_pause.triggered.connect(self._a_sound_pause_triggered)
         self.a_sound_stop.triggered.connect(self._a_sound_stop_triggered)
@@ -71,9 +72,9 @@ class MainWindow(Ui_MainWindow, QMainWindow):
 
     def open_file(self, type_, name, path, **kwargs):
         if type_ == 'npk':
-            self.add_tab_widget(name, NPKWidget(path, self._event))
+            self.add_tab_widget(name, NPKWidget(path, self._event, **kwargs))
         elif type_ == 'img':
-            self.add_tab_widget(name, IMGWidget(path, self._event, kwargs.get('img_name', '')))
+            self.add_tab_widget(name, IMGWidget(path, self._event, **kwargs))
 
     def open_file_auto(self, path):
         if os.path.exists(path):
@@ -100,10 +101,10 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         else:
             self.close()
 
-    def _a_load_img_triggered(self):
+    def _a_load_img_triggered(self, **kwargs):
         cw = self.current_widget
         if isinstance(cw, NPKWidget):
-            cw.load_current_img()
+            cw.load_current_img(**kwargs)
 
     def _tw_content_current_changed(self, index):
         tws = self.tab_widgets

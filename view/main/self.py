@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'self.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -22,7 +24,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.tw_content, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 960, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 960, 24))
         self.menubar.setObjectName("menubar")
         self.m_main = QtWidgets.QMenu(self.menubar)
         self.m_main.setObjectName("m_main")
@@ -100,6 +102,8 @@ class Ui_MainWindow(object):
         self.a_clean_no_std.setObjectName("a_clean_no_std")
         self.a_clean_duplicate = QtWidgets.QAction(MainWindow)
         self.a_clean_duplicate.setObjectName("a_clean_duplicate")
+        self.a_load_img_force = QtWidgets.QAction(MainWindow)
+        self.a_load_img_force.setObjectName("a_load_img_force")
         self.m_extract_mode.addAction(self.a_extract_mode_wodir)
         self.m_extract_mode.addAction(self.a_extract_mode_raw)
         self.m_main.addAction(self.a_open)
@@ -117,6 +121,7 @@ class Ui_MainWindow(object):
         self.m_sound.addAction(self.a_sound_loop)
         self.m_sound.addAction(self.a_sound_single)
         self.m_npk.addAction(self.a_load_img)
+        self.m_npk.addAction(self.a_load_img_force)
         self.m_npk.addSeparator()
         self.m_npk.addAction(self.a_extract_npk)
         self.m_npk.addAction(self.a_extract_all_npk)
@@ -196,4 +201,5 @@ class Ui_MainWindow(object):
         self.a_extract_img_all_npk.setText(_translate("MainWindow", "提取所有IMG内容"))
         self.a_clean_no_std.setText(_translate("MainWindow", "清除非标准文件"))
         self.a_clean_duplicate.setText(_translate("MainWindow", "清除重复文件"))
-
+        self.a_load_img_force.setText(_translate("MainWindow", "加载IMG文件（强制）"))
+        self.a_load_img_force.setShortcut(_translate("MainWindow", "Ctrl+Shift+L"))
