@@ -2,7 +2,7 @@ import os
 import traceback
 from io import BytesIO, StringIO
 
-from PyQt5.QtWidgets import QWidget, QFileDialog, QTableWidgetItem, QMessageBox
+from PyQt6.QtWidgets import QWidget, QFileDialog, QTableWidgetItem, QMessageBox
 
 from lib.bass import Bass
 from model.npk import NPK

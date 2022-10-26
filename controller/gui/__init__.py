@@ -2,7 +2,7 @@ import sys
 import traceback
 from io import StringIO
 
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from controller.gui.screen import ScreenWindow
 from util.io_helper import IOHelper
@@ -31,7 +31,7 @@ class GUI:
         for file in self.args.files:
             self.main.open_file_auto(file)
 
-        code = self.qt.exec_()
+        code = self.qt.exec()
         return code
 
     @staticmethod

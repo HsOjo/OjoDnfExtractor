@@ -1,6 +1,6 @@
 import os
 
-from PyQt5.QtWidgets import QMainWindow, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QFileDialog
 
 from view.main.self import Ui_MainWindow
 from .img_widget import IMGWidget

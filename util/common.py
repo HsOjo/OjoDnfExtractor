@@ -2,7 +2,7 @@ from io import BytesIO
 
 from PIL import Image
 from PIL.DdsImagePlugin import DdsImageFile
-from PyQt5.QtWidgets import QTableWidgetItem
+from PyQt6.QtWidgets import QTableWidgetItem
 
 from util.io_helper import IOHelper
 

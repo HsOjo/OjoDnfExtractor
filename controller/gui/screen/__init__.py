@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QPaintEvent, QPainter, QPen, QColor, QPalette
-from PyQt5.QtWidgets import QMainWindow, QColorDialog
+from PyQt6.QtGui import QPaintEvent, QPainter, QPen, QColor, QPalette
+from PyQt6.QtWidgets import QMainWindow, QColorDialog
 
 from view.screen.self import Ui_ScreenWindow
 
@@ -11,12 +11,12 @@ class ScreenWindow(Ui_ScreenWindow, QMainWindow):
 
         self._texture = {'x': 0, 'y': 0, 'w': 0, 'h': 0, 'pixmap': None}
         self._rect = {'draw': False, 'color': QColor(255, 0, 0)}
-        self._blend = QPainter.CompositionMode_SourceOver
+        self._blend = QPainter.CompositionMode.CompositionMode_SourceOver
         self._background_color = QColor(200, 200, 200)
 
         self._blend_bind = {
-            self.a_blend_normal: QPainter.CompositionMode_SourceOver,
-            self.a_blend_plus: QPainter.CompositionMode_Plus,
+            self.a_blend_normal: QPainter.CompositionMode.CompositionMode_SourceOver,
+            self.a_blend_plus: QPainter.CompositionMode.CompositionMode_Plus,
         }
 
         self.w_canvas.paintEvent = self._w_canvas_paint_event

@@ -3,8 +3,8 @@ import os
 import traceback
 from io import BytesIO
 
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QWidget, QFileDialog, QTableWidgetItem
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QWidget, QFileDialog, QTableWidgetItem
 
 from model.img import IMG, IMAGE_FORMAT_LINK, IMAGE_EXTRA_MAP_ZLIB, IMAGE_FORMAT_TEXT, IMAGE_EXTRA_TEXT
 from util import common
