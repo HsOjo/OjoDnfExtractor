@@ -455,10 +455,13 @@ class IMG:
             data = self.load_image(index)
             version = self._version
 
-            if version == FILE_VERSION_1 or version == FILE_VERSION_2 or version == FILE_VERSION_5:
+            if version == FILE_VERSION_1 or version == FILE_VERSION_2:
                 data = IMG._nximg_to_raw(data, image['format'])
-            elif version == FILE_VERSION_4:
-                data = IMG._indexes_to_raw(data, self._color_board)
+            elif version == FILE_VERSION_4 or version == FILE_VERSION_5:
+                if image['extra'] == IMAGE_EXTRA_ZLIB:
+                    data = IMG._indexes_to_raw(data, self._color_board)
+                elif image['extra'] == IMAGE_EXTRA_NONE:
+                    data = IMG._nximg_to_raw(data, image['format'])
             elif version == FILE_VERSION_6:
                 data = IMG._indexes_to_raw(data, self._color_boards[color_board_index])
             else:
