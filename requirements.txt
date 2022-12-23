@@ -1,2 +1,3 @@
 Pillow
 PyQt6
+PyDnfEx>=0.1.0
