@@ -57,8 +57,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.a_extract_img_all_npk.triggered.connect(self._a_extract_img_all_npk_triggered)
         self.a_extract_img.triggered.connect(self._a_extract_img_triggered)
         self.a_extract_all_img.triggered.connect(self._a_extract_all_img_triggered)
-        self.a_extract_map.triggered.connect(self._a_extract_map_triggered)
-        self.a_extract_all_map.triggered.connect(self._a_extract_all_map_triggered)
+        self.a_extract_sprite.triggered.connect(self._a_extract_sprite_triggered)
+        self.a_extract_all_sprite.triggered.connect(self._a_extract_all_sprite_triggered)
         self.a_extract_mode_raw.triggered.connect(lambda: self.set_extract_mode('raw'))
         self.a_extract_mode_wodir.triggered.connect(lambda: self.set_extract_mode('wodir'))
         self.a_extract_pos_info.triggered.connect(self._a_extract_pos_info_triggered)
@@ -89,8 +89,9 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             raise Exception('File not exists: %s' % path)
 
     def _a_open_triggered(self):
-        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='打开文件', directory='./',
-                                                   filter='NPK 文件(*.npk);;IMG 文件(*.img);;所有文件(*)')
+        [path, type] = QFileDialog.getOpenFileName(
+            parent=self, caption='打开文件', filter='NPK 文件(*.npk);;IMG 文件(*.img);;所有文件(*)'
+        )
         self.open_file_auto(path)
 
     def _a_close_triggered(self):
@@ -158,15 +159,15 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         if isinstance(cw, IMGWidget):
             cw.extract_all_image()
 
-    def _a_extract_map_triggered(self):
+    def _a_extract_sprite_triggered(self):
         cw = self.current_widget
         if isinstance(cw, IMGWidget):
-            cw.extract_current_map_image()
+            cw.extract_current_sprite()
 
-    def _a_extract_all_map_triggered(self):
+    def _a_extract_all_sprite_triggered(self):
         cw = self.current_widget
         if isinstance(cw, IMGWidget):
-            cw.extract_all_map_image()
+            cw.extract_all_sprite()
 
     def _a_extract_pos_info_triggered(self):
         cw = self.current_widget

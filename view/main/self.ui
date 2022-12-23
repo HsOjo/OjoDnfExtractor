@@ -91,8 +91,8 @@
     <addaction name="a_extract_img"/>
     <addaction name="a_extract_all_img"/>
     <addaction name="separator"/>
-    <addaction name="a_extract_map"/>
-    <addaction name="a_extract_all_map"/>
+    <addaction name="a_extract_sprite"/>
+    <addaction name="a_extract_all_sprite"/>
     <addaction name="separator"/>
     <addaction name="a_extract_pos_info"/>
     <addaction name="separator"/>
@@ -255,14 +255,14 @@
     <string>仅文件名</string>
    </property>
   </action>
-  <action name="a_extract_map">
+  <action name="a_extract_sprite">
    <property name="text">
-    <string>提取图像（map）</string>
+    <string>提取图像（sprite）</string>
    </property>
   </action>
-  <action name="a_extract_all_map">
+  <action name="a_extract_all_sprite">
    <property name="text">
-    <string>提取所有图像（map）</string>
+    <string>提取所有图像（sprite）</string>
    </property>
   </action>
   <action name="a_sound_single">

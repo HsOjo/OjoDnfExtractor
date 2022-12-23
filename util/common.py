@@ -16,15 +16,15 @@ def zfill_bytes(data, size):
 
 def dds_to_png(data, box=None, rotate=0):
     with BytesIO(data) as io_dds:
-        map_image = DdsImageFile(io_dds)
+        sprite = DdsImageFile(io_dds)
         if box is not None:
-            map_image = map_image.crop(box)
+            sprite = sprite.crop(box)
 
         if rotate == 1:
-            map_image = map_image.transpose(Image.ROTATE_90)
+            sprite = sprite.transpose(Image.ROTATE_90)
 
         with BytesIO() as io_png:
-            map_image.save(io_png, 'png')
+            sprite.save(io_png, 'png')
             data_png = IOHelper.read_range(io_png)
 
     return data_png

@@ -3,9 +3,9 @@ import traceback
 from io import BytesIO, StringIO
 
 from PyQt6.QtWidgets import QWidget, QFileDialog, QTableWidgetItem, QMessageBox
+from pydnfex.npk import NPK, File
 
 from lib.bass import Bass
-from model.npk import NPK
 from util import common
 from view.main.npk_widget import Ui_NPKWidget
 from .img_widget import IMGWidget
@@ -27,7 +27,7 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             raise Exception('Unsupport value type.')
 
         self._io = io
-        self._npk = NPK(io)
+        self._npk = NPK.open(io)
         self._sound = None
         self._sound_temp = {}
         self._changing = False
@@ -47,7 +47,7 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             item = tw.item(row, col)  # type: QTableWidgetItem
             try:
                 if col == 2:
-                    npk.set_info(index, 'name', item.text())
+                    npk.file_by_index(index).name = item.text()
             except Exception as e:
                 traceback.print_exc()
 
@@ -55,12 +55,11 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         ue = self._upper_event
         npk = self._npk
         index = self.tw_files.currentRow()
-        info = npk.info(index)
-        if info is not None:
-            data = npk.load_file(index, force=kwargs.get('force', False))
-            [dirname, filename] = os.path.split(info['name'])
-
-            ue['open_file']('img', filename, data, img_name=info['name'], **kwargs)
+        file = npk.file_by_index(index)
+        if file is not None:
+            file.load(force=kwargs.get('force', False))
+            [dirname, filename] = os.path.split(file.name)
+            ue['open_file']('img', filename, file.data, img_name=file.name, **kwargs)
 
     def refresh_files(self):
         self._changing = True
@@ -77,37 +76,33 @@ class NPKWidget(Ui_NPKWidget, QWidget):
             for i in range(file_count - row_count):
                 tw.insertRow(0)
 
-        for i in npk.files:
-            info = npk.info(i)
+        for i, f in enumerate(npk.files):
             tw.setItem(i, 0, common.qtwi_str(i))
-            tw.setItem(i, 1, common.qtwi_str(info['offset']))
-            tw.setItem(i, 2, common.qtwi_str(info['size']))
-            tw.setItem(i, 3, common.qtwi_str('Y' if common.is_std_name(info['name']) else ''))
-            tw.setItem(i, 4, common.qtwi_str(info['name']))
+            tw.setItem(i, 1, common.qtwi_str(getattr(f, '_offset')))
+            tw.setItem(i, 2, common.qtwi_str(f.size))
+            tw.setItem(i, 3, common.qtwi_str('Y' if common.is_std_name(f.name) else ''))
+            tw.setItem(i, 4, common.qtwi_str(f.name))
         self._changing = False
 
     def get_sound(self, index):
         npk = self._npk
 
-        info = npk.info(index)
-        key = (index, info['name'])
+        file = npk.file_by_index(index)
+        key = (index, file.name)
 
         sound_temp = self._sound_temp
         sound = sound_temp.get(key)
         if sound is not None:
             return sound
         else:
-            data = npk.load_file(index)
-
-            sound = Bass(data)
-
+            sound = Bass(file.data)
             sound_temp[key] = sound
             return sound
 
     def get_current_sound(self):
         index = self.tw_files.currentRow()
-        info = self._npk.info(index)
-        if info is not None:
+        file = self._npk.file_by_index(index)
+        if file is not None:
             sound = self.get_sound(index)  # type: Bass
             return sound
 
@@ -127,16 +122,14 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         if sound is not None:
             sound.stop()
 
-    def extract_gen_path(self, index):
+    def extract_gen_path(self, file):
         ue = self._upper_event
-        npk = self._npk
 
         extract_dir = ue['get_extract_dir']()
         extract_mode = ue['get_extract_mode']()
 
         if extract_dir is not None:
-            info = npk.info(index)
-            [dirname, filename] = os.path.split(info['name'])
+            [dirname, filename] = os.path.split(file.name)
 
             if extract_mode == 'raw':
                 dir_ = extract_dir + '/%s' % dirname
@@ -154,21 +147,19 @@ class NPKWidget(Ui_NPKWidget, QWidget):
 
         index = self.tw_files.currentRow()
 
-        if index >= 0:
-            path = self.extract_gen_path(index)
-
+        file = npk.file_by_index(index)
+        if file is not None:
+            path = self.extract_gen_path(file)
             if path is not None:
-                data = npk.load_file(index)
-                common.write_file(path, data)
+                common.write_file(path, file.data)
 
     def extract_all_file(self):
         npk = self._npk
 
-        for index in npk.files:
-            path = self.extract_gen_path(index)
+        for file in npk.files:
+            path = self.extract_gen_path(file)
             if path is not None:
-                data = npk.load_file(index)
-                common.write_file(path, data)
+                common.write_file(path, file.data)
             else:
                 break
 
@@ -180,18 +171,17 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         pw.set_max(len(npk.files) - 1)
         pw.set_title('提取所有IMG内容中...')
         pw.show()
-        for index in npk.files:
+        for index, file in enumerate(npk.files):
             pw.set_value(index)
             ue['process_events']()
             if pw.cancel:
                 return False
 
-            info = npk.info(index)
-            imgw = IMGWidget(npk.load_file(index), self._upper_event, info['name'])
+            imgw = IMGWidget(file.data, self._upper_event, file.name)
             try:
                 if not imgw.extract_pos_info():
                     break
-                if not imgw.extract_all_map_image():
+                if not imgw.extract_all_sprite():
                     break
                 if not imgw.extract_all_image():
                     break
@@ -200,7 +190,7 @@ class NPKWidget(Ui_NPKWidget, QWidget):
                     traceback.print_exc(file=io)
                     io.seek(0)
                     content = io.read()
-                QMessageBox.warning(None, '错误：', '''%s\n\n%s''' % (info['name'], content))
+                QMessageBox.warning(None, '错误：', '''%s\n\n%s''' % (file.name, content))
 
         pw.close()
 
@@ -215,7 +205,7 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         if os.path.exists(path):
             [dirname, filename] = os.path.split(path)
             data = common.read_file(path)
-            npk.insert_file(index, filename, data)
+            npk.files.insert(index, File(filename, data))
         self.refresh_files()
 
     def replace_file(self):
@@ -225,34 +215,32 @@ class NPKWidget(Ui_NPKWidget, QWidget):
         [path, type] = QFileDialog.getOpenFileName(parent=self, caption='替换文件', directory='./',
                                                    filter='IMG 文件(*.img);;OGG 文件(*.ogg);;所有文件(*)')
         if os.path.exists(path):
-            [dirname, filename] = os.path.split(path)
             data = common.read_file(path)
-            npk.replace_file(index, data)
+            npk.file_by_index(index).set_data(data)
         self.refresh_files()
 
     def remove_file(self):
         npk = self._npk
         index = self.tw_files.currentRow()
 
-        npk.remove_file(index)
+        npk.files.pop(index)
         self.refresh_files()
 
     def clean_no_std(self):
         npk = self._npk
-        for index in reversed(npk.files):
-            if not common.is_std_name(npk.info(index).get('name', '')):
-                npk.remove_file(index)
+        for index, file in enumerate(reversed(npk.files)):
+            if not common.is_std_name(file.name):
+                npk.files.pop(index)
         self.refresh_files()
 
     def clean_duplicate(self):
         npk = self._npk
 
         dup_list = []
-        for index in reversed(npk.files):
-            info = npk.info(index)
-            item = (info['offset'], info['size'])
+        for index, file in enumerate(reversed(npk.files)):
+            item = (getattr(file, '_offset'), file.size)
             if item in dup_list:
-                npk.remove_file(index)
+                npk.files.pop(index)
             else:
                 dup_list.append(item)
         self.refresh_files()

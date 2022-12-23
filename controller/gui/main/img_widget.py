@@ -5,9 +5,14 @@ from io import BytesIO
 
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QWidget, QFileDialog, QTableWidgetItem
+from pydnfex.hard_code import IMAGE_FORMAT_8888
+from pydnfex.img import IMGFactory, ImageLink, Sprite
+from pydnfex.img.image import SpriteZlibImage, Image
+from pydnfex.img.version import IMGv5, IMGv6, IMGv4
 
-from model.img import IMG, IMAGE_FORMAT_LINK, IMAGE_EXTRA_MAP_ZLIB, IMAGE_FORMAT_TEXT, IMAGE_EXTRA_TEXT
+from res.text import IMAGE_FORMAT_TEXT, IMAGE_EXTRA_TEXT
 from util import common
+from util.io_helper import IOHelper
 from view.main.img_widget import Ui_IMGWidget
 from ..progress_widget import ProgressWidget
 
@@ -27,18 +32,18 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             raise Exception('Unsupport value type.')
 
         self._io = io
-        self._img = IMG(io)
+        self._img = IMGFactory.open(io)
         self._pixmap_temp = {}
         self._changing = False
         self._name = img_name
 
         self.tw_images.currentItemChanged.connect(self._tw_images_current_item_changed)
         self.tw_images.cellChanged.connect(self._tw_images_cell_changed)
-        self.tw_map_images.currentItemChanged.connect(self._tw_map_images_current_item_changed)
+        self.tw_sprites.currentItemChanged.connect(self._tw_sprites_current_item_changed)
         self.tw_color_boards.currentItemChanged.connect(self._tw_color_boards_current_item_changed)
 
         self.refresh_images()
-        self.refresh_map_images()
+        self.refresh_sprites()
         self.refresh_info()
         self.refresh_color_boards()
 
@@ -52,24 +57,21 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             index = row
             item = tw.item(row, col)  # type: QTableWidgetItem
             try:
+                image = img.images[index]
                 if col == 2:
-                    img.set_info(index, 'link', int(item.text()))
+                    index = int(item.text())
+                    image.set_image(img.images[index])
                 elif col == 4:
-                    [x, y] = item.text().split(',')
-                    img.set_info(index, 'x', int(x))
-                    img.set_info(index, 'y', int(y))
+                    [x, y] = list(map(item.text().split(',')))
+                    image.x, image.y = x, y
                 elif col == 6:
-                    [mw, mh] = item.text().split(',')
-                    img.set_info(index, 'mw', int(mw))
-                    img.set_info(index, 'mh', int(mh))
+                    [mw, mh] = list(map(item.text().split(',')))
+                    image.mw, image.mh = mw, mh
                 elif col == 8:
-                    img.set_info(index, 'map_index', int(item.text()))
+                    image.sprite_index = int(item.text())
                 elif col == 9:
-                    [l, t, r, b] = item.text().split(',')
-                    img.set_info(index, 'left', int(l))
-                    img.set_info(index, 'top', int(t))
-                    img.set_info(index, 'right', int(r))
-                    img.set_info(index, 'bottom', int(b))
+                    [l, t, r, b] = list(map(int, item.text().split(',')))
+                    image.left, image.top, image.right, image.bottom = l, t, r, b
             except Exception as e:
                 traceback.print_exc()
 
@@ -78,7 +80,8 @@ class IMGWidget(Ui_IMGWidget, QWidget):
         img = self._img
 
         row_count = tw.rowCount()
-        color_board_count = len(img.color_boards)
+        color_boards = getattr(img, 'color_boards', [])
+        color_board_count = len(color_boards)
 
         if row_count > color_board_count:
             for i in range(row_count - 1, color_board_count - 1, -1):
@@ -87,9 +90,9 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             for i in range(color_board_count - row_count):
                 tw.insertRow(0)
 
-        for i, v in enumerate(img.color_boards):
+        for i, color_board in enumerate(color_boards):
             tw.setItem(i, 0, common.qtwi_str(i))
-            tw.setItem(i, 1, common.qtwi_str(len(v)))
+            tw.setItem(i, 1, common.qtwi_str(len(color_board.colors)))
 
         tw.setCurrentCell(0, 0)
 
@@ -97,10 +100,13 @@ class IMGWidget(Ui_IMGWidget, QWidget):
         img = self._img
 
         index = self.tw_images.currentRow()
-        info = img.info(index)
+        image = img.image_by_index(index)
+
+        if image is None:
+            return
 
         pixmap = self.get_pixmap('normal', index, new.row())
-        self.update_view(info['x'], info['y'], info['w'], info['h'], info['mw'], info['mh'], pixmap)
+        self.update_view(image.x, image.y, image.w, image.h, image.mw, image.mh, pixmap)
 
     def refresh_images(self):
         self._changing = True
@@ -117,65 +123,61 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             for i in range(image_count - row_count):
                 tw.insertRow(0)
 
-        for i, v in enumerate(img.images):
-            info = {
-                'format': None, 'link': None, 'extra': None, 'x': None, 'y': None, 'w': None, 'h': None, 'mw': None,
-                'mh': None, 'size': None,
-            }
-            info.update(img.info(v))
+        for index, image in enumerate(img.images):
+            target = image
+            if isinstance(image, ImageLink):
+                target = image.final_image
+                tw.setItem(index, 2, common.qtwi_str(image.index))
+            else:
+                tw.setItem(index, 2, common.qtwi_str())
 
-            tw.setItem(i, 0, common.qtwi_str(i))
-            tw.setItem(i, 1, common.qtwi_str(IMAGE_FORMAT_TEXT.get(info['format'], 'unknown')))
-            if info['format'] == IMAGE_FORMAT_LINK:
-                tw.setItem(i, 2, common.qtwi_str(info['link']))
+            tw.setItem(index, 0, common.qtwi_str(index))
+            tw.setItem(index, 1, common.qtwi_str(IMAGE_FORMAT_TEXT.get(target.format, 'unknown')))
+            tw.setItem(index, 3, common.qtwi_str(IMAGE_EXTRA_TEXT.get(target.extra, 'unknown')))
+            tw.setItem(index, 4, common.qtwi_str('%s,%s' % (target.x, target.y)))
+            tw.setItem(index, 5, common.qtwi_str('%s,%s' % (target.w, target.h)))
+            tw.setItem(index, 6, common.qtwi_str('%s,%s' % (target.mw, target.mh)))
+            tw.setItem(index, 7, common.qtwi_str(target.size))
+            if isinstance(target, SpriteZlibImage):
+                tw.setItem(index, 8, common.qtwi_str(target.sprite_index))
+                tw.setItem(index, 9, common.qtwi_str('%s,%s,%s,%s' % (
+                    target.left, target.top, target.right, target.bottom
+                )))
             else:
-                tw.setItem(i, 2, common.qtwi_str())
-            tw.setItem(i, 3, common.qtwi_str(IMAGE_EXTRA_TEXT.get(info['extra'], 'unknown')))
-            tw.setItem(i, 4, common.qtwi_str('%s,%s' % (info['x'], info['y'])))
-            tw.setItem(i, 5, common.qtwi_str('%s,%s' % (info['w'], info['h'])))
-            tw.setItem(i, 6, common.qtwi_str('%s,%s' % (info['mw'], info['mh'])))
-            tw.setItem(i, 7, common.qtwi_str(info['size']))
-            if info['extra'] == IMAGE_EXTRA_MAP_ZLIB:
-                tw.setItem(i, 8, common.qtwi_str(info['map_index']))
-                tw.setItem(i, 9,
-                           common.qtwi_str(
-                               '%s,%s,%s,%s' % (info['left'], info['top'], info['right'], info['bottom'])))
-            else:
-                tw.setItem(i, 8, common.qtwi_str())
-                tw.setItem(i, 9, common.qtwi_str())
+                tw.setItem(index, 8, common.qtwi_str())
+                tw.setItem(index, 9, common.qtwi_str())
         self._changing = False
 
-    def refresh_map_images(self):
-        tw = self.tw_map_images
+    def refresh_sprites(self):
+        tw = self.tw_sprites
         img = self._img
 
         row_count = tw.rowCount()
-        image_count = len(img.map_images)
+        sprites = getattr(img, 'sprites', [])
+        sprite_count = len(sprites)
 
-        if row_count > image_count:
-            for i in range(row_count - 1, image_count - 1, -1):
+        if row_count > sprite_count:
+            for i in range(row_count - 1, sprite_count - 1, -1):
                 tw.removeRow(i)
         else:
-            for i in range(image_count - row_count):
+            for i in range(sprite_count - row_count):
                 tw.insertRow(0)
 
-        for i, v in enumerate(img.map_images):
-            info = img.info_map(v)
-
-            tw.setItem(i, 0, common.qtwi_str(info['index']))
-            tw.setItem(i, 1, common.qtwi_str(info['data_size']))
-            tw.setItem(i, 2, common.qtwi_str(info['raw_size']))
-            tw.setItem(i, 3, common.qtwi_str('%s,%s' % (info['w'], info['h'])))
+        for i, sprite in enumerate(sprites):
+            tw.setItem(i, 0, common.qtwi_str(sprite.index))
+            tw.setItem(i, 1, common.qtwi_str(sprite.data_size))
+            tw.setItem(i, 2, common.qtwi_str(sprite.raw_size))
+            tw.setItem(i, 3, common.qtwi_str('%s,%s' % (sprite.w, sprite.h)))
 
     def refresh_info(self):
         tw = self.tw_info
         img = self._img
 
-        tw.setItem(0, 0, common.qtwi_str('v%s' % img.version))
+        tw.setItem(0, 0, common.qtwi_str(img.version))
         tw.setItem(1, 0, common.qtwi_str(len(img.images)))
-        tw.setItem(2, 0, common.qtwi_str(len(img.color_board)))
-        tw.setItem(3, 0, common.qtwi_str(len(img.map_images)))
-        tw.setItem(4, 0, common.qtwi_str(len(img.color_boards)))
+        tw.setItem(2, 0, common.qtwi_str(len(img.color_board.colors) if isinstance(img, IMGv4) else '-'))
+        tw.setItem(3, 0, common.qtwi_str(len(img.sprites) if isinstance(img, IMGv5) else '-'))
+        tw.setItem(4, 0, common.qtwi_str(len(img.color_boards) if isinstance(img, IMGv6) else '-'))
 
     def get_pixmap(self, img_type, index, color_board_index=None):
         img = self._img
@@ -187,9 +189,23 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             return pixmap
         else:
             if img_type == 'normal':
-                data = img.build(index, color_board_index)
+                image = img.image_by_index(index)
+                if not image:
+                    return None
+                elif isinstance(img, ImageLink):
+                    return self.get_pixmap(img_type, img.index, color_board_index)
+
+                color_board = None
+                if isinstance(img, IMGv6):
+                    color_board = img.color_board_by_index(color_board_index)
+
+                with BytesIO() as io:
+                    img.build(image, color_board=color_board).save(io, format='png')
+                    data = IOHelper.read_range(io)
             elif img_type == 'map':
-                data = img.build_map(index)
+                with BytesIO() as io:
+                    img.sprite_by_index(index).build().save(io, format='png')
+                    data = IOHelper.read_range(io)
             else:
                 raise Exception('Unknown img_type.')
 
@@ -209,24 +225,23 @@ class IMGWidget(Ui_IMGWidget, QWidget):
             img = self._img
 
             index = new.row()
-            info = img.info(index)
-            if info['format'] == IMAGE_FORMAT_LINK:
-                index = info['link']
-                info = img.info(info['link'])
+            image = img.image_by_index(index)
+            if isinstance(image, ImageLink):
+                image = image.final_image
 
             color_board_index = self.tw_color_boards.currentRow()
             pixmap = self.get_pixmap('normal', index, color_board_index)
-            self.update_view(info['x'], info['y'], info['w'], info['h'], info['mw'], info['mh'], pixmap)
+            self.update_view(image.x, image.y, image.w, image.h, image.mw, image.mh, pixmap)
 
-    def _tw_map_images_current_item_changed(self, new, old):
+    def _tw_sprites_current_item_changed(self, new, old):
         if new is not None:
             img = self._img
 
             index = new.row()
-            info = img.info_map(index)
+            sprite = img.sprite_by_index(index)
 
             pixmap = self.get_pixmap('map', index)
-            self.update_view(0, 0, info['w'], info['h'], info['w'], info['h'], pixmap)
+            self.update_view(0, 0, sprite.w, sprite.h, sprite.w, sprite.h, pixmap)
 
     def extract_gen_dir(self):
         ue = self._upper_event
@@ -269,7 +284,13 @@ class IMGWidget(Ui_IMGWidget, QWidget):
                 path = self.extract_gen_path(index, 'image_color_%s' % color_board_index)
 
             if path is not None:
-                data = img.build(index, color_board_index)
+                color_board = None
+                if color_board_index:
+                    color_board = img.color_board_by_index(color_board_index)
+                image = img.image_by_index(index)
+                with BytesIO() as io:
+                    img.build(image, color_board=color_board).save(io, format='png')
+                    data = IOHelper.read_range(io)
                 common.write_file(path, data)
 
     def extract_all_image(self):
@@ -291,14 +312,23 @@ class IMGWidget(Ui_IMGWidget, QWidget):
                 for color_board_index in range(count_color_boards):
                     path = self.extract_gen_path(index, 'image_color_%s' % color_board_index)
                     if path is not None:
-                        data = img.build(index, color_board_index)
+                        color_board = None
+                        if color_board_index:
+                            color_board = img.color_board_by_index(color_board_index)
+                        image = img.image_by_index(index)
+                        with BytesIO() as io:
+                            img.build(image, color_board=color_board).save(io, format='png')
+                            data = IOHelper.read_range(io)
                         common.write_file(path, data)
                     else:
                         return False
             else:
                 path = self.extract_gen_path(index, 'image')
                 if path is not None:
-                    data = img.build(index, 0)
+                    image = img.image_by_index(index)
+                    with BytesIO() as io:
+                        img.build(image).save(io, format='png')
+                        data = IOHelper.read_range(io)
                     common.write_file(path, data)
                 else:
                     return False
@@ -307,24 +337,24 @@ class IMGWidget(Ui_IMGWidget, QWidget):
 
         return True
 
-    def extract_current_map_image(self):
+    def extract_current_sprite(self):
         img = self._img
-        index = self.tw_map_images.currentRow()
+        index = self.tw_sprites.currentRow()
 
         if index >= 0:
-            path = self.extract_gen_path(index, 'map_image')
+            path = self.extract_gen_path(index, 'sprite')
             if path is not None:
-                data = img.build_map(index)
+                data = img.sprite_by_index(index).build()
                 common.write_file(path, data)
 
-    def extract_all_map_image(self):
+    def extract_all_sprite(self):
         img = self._img
 
-        for index in img.map_images:
-            path = self.extract_gen_path(index, 'map_image')
+        for index, sprite in enumerate(img.sprites):
+            path = self.extract_gen_path(index, 'sprite')
 
             if path is not None:
-                data = img.build_map(index)
+                data = sprite.build()
                 common.write_file(path, data)
             else:
                 return False
@@ -340,8 +370,10 @@ class IMGWidget(Ui_IMGWidget, QWidget):
 
             info = []
             for index in img.images:
-                i = img.info(index)
-                info.append({'x': i['x'], 'y': i['y']})
+                image = img.image_by_index(index)
+                if isinstance(image, ImageLink):
+                    image = image.final_image
+                info.append({'x': image.x, 'y': image.y})
 
             with open(path, 'w') as io:
                 json.dump(info, io, ensure_ascii=False)
@@ -358,7 +390,9 @@ class IMGWidget(Ui_IMGWidget, QWidget):
                                                    filter='PNG 文件(*.png);;所有文件(*)')
         if os.path.exists(path):
             data = common.read_file(path)
-            img.insert_image(index, data)
+            image = Image(IMAGE_FORMAT_8888)
+            image.set_data(data)
+            img.images.insert(index, image)
         self.refresh_images()
         self.refresh_info()
 
@@ -370,7 +404,7 @@ class IMGWidget(Ui_IMGWidget, QWidget):
                                                    filter='PNG 文件(*.png);;所有文件(*)')
         if os.path.exists(path):
             data = common.read_file(path)
-            img.replace_image(index, data)
+            img.image_by_index(index).set_data(data)
         self.refresh_images()
 
     def remove_image(self):
@@ -381,35 +415,37 @@ class IMGWidget(Ui_IMGWidget, QWidget):
         self.refresh_images()
         self.refresh_info()
 
-    def insert_map_image(self):
+    def insert_sprite(self):
         img = self._img
         index = self.tw_images.currentRow()
 
-        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='插入图像（map）', directory='./',
+        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='插入图像（sprite）', directory='./',
                                                    filter='PNG 文件(*.png);;所有文件(*)')
         if os.path.exists(path):
             data = common.read_file(path)
-            img.insert_map_image(index, data)
+            sprite = Sprite(IMAGE_FORMAT_8888)
+            sprite.set_data(data)
+            img.insert_sprite(index, sprite)
         self.refresh_images()
         self.refresh_info()
 
-    def replace_map_image(self):
+    def replace_sprite(self):
         img = self._img
         index = self.tw_images.currentRow()
 
-        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='替换图像（map）', directory='./',
+        [path, type] = QFileDialog.getOpenFileName(parent=self, caption='替换图像（sprite）', directory='./',
                                                    filter='PNG 文件(*.png);;所有文件(*)')
         if os.path.exists(path):
             data = common.read_file(path)
-            img.replace_map_image(index, data)
+            img.sprite_by_index(index).set_data(data)
         self.refresh_images()
 
-    def remove_map_image(self):
+    def remove_sprite(self):
         img = self._img
         index = self.tw_images.currentRow()
 
-        img.remove_image(index)
-        self.remove_map_image()
+        img.sprites.pop(index)
+        self.remove_sprite()
         self.refresh_info()
 
     def save_img(self):

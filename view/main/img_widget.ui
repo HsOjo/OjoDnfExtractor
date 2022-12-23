@@ -73,11 +73,11 @@
    <item row="1" column="1">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>(v5)图像列表（map）</string>
+      <string>(v5)图像列表（sprite）</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
       <item row="0" column="0">
-       <widget class="QTableWidget" name="tw_map_images">
+       <widget class="QTableWidget" name="tw_sprites">
         <property name="minimumSize">
          <size>
           <width>340</width>
@@ -161,7 +161,7 @@
         </row>
         <row>
          <property name="text">
-          <string>(v5)图像数量（map）</string>
+          <string>(v5)图像数量（sprite）</string>
          </property>
         </row>
         <row>
@@ -253,7 +253,7 @@
         </column>
         <column>
          <property name="text">
-          <string>索引（map）</string>
+          <string>索引（sprite）</string>
          </property>
         </column>
         <column>
