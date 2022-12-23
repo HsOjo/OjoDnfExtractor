@@ -2,15 +2,17 @@ import os
 
 from PyQt6.QtWidgets import QMainWindow, QFileDialog
 
-from app.res.window.main.self import Ui_MainWindow
+from app.const import Const
 from app.main.widget.img import IMGWidget
 from app.main.widget.npk import NPKWidget
+from app.res.window.main.self import Ui_MainWindow
 
 
 class MainWindow(Ui_MainWindow, QMainWindow):
     def __init__(self, upper_event):
         super().__init__()
         self.setupUi(self)
+        self.setWindowTitle(f'{Const.project} ({Const.version})')
 
         self._extract_dir = None
         self._extract_mode = 'wodir'
